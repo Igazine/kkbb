@@ -7,7 +7,7 @@ public final class KeyboardMonitor {
     private var localMonitor: Any?
     private var pressedKeyToNote: [UInt16: UInt8] = [:]
     private weak var appState: AppState?
-    private let midiManager = MIDIManager.shared
+    private let pipeline = MIDIPipeline.shared
 
     private init() {}
 
@@ -121,7 +121,7 @@ public final class KeyboardMonitor {
             let channel = appState.channel
             let destUID = appState.selectedDestinationUID
 
-            midiManager.sendNoteOn(note: note, velocity: velocity, channel: channel, destinationUID: destUID)
+            pipeline.sendNoteOn(note: note, velocity: velocity, channel: channel, destinationUID: destUID)
 
             DispatchQueue.main.async {
                 appState.activeNotes.insert(note)
@@ -135,7 +135,7 @@ public final class KeyboardMonitor {
 
             let channel = appState.channel
             let destUID = appState.selectedDestinationUID
-            midiManager.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
+            pipeline.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
 
             DispatchQueue.main.async {
                 appState.activeNotes.remove(note)
@@ -149,10 +149,10 @@ public final class KeyboardMonitor {
     public func allNotesOff() {
         guard let appState = appState else { return }
         for note in pressedKeyToNote.values {
-            midiManager.sendNoteOff(note: note, channel: appState.channel, destinationUID: appState.selectedDestinationUID)
+            pipeline.sendNoteOff(note: note, channel: appState.channel, destinationUID: appState.selectedDestinationUID)
         }
         pressedKeyToNote.removeAll()
-        midiManager.allNotesOff(channel: appState.channel, destinationUID: appState.selectedDestinationUID)
+        pipeline.allNotesOff(channel: appState.channel, destinationUID: appState.selectedDestinationUID)
         DispatchQueue.main.async {
             appState.activeNotes.removeAll()
         }

@@ -181,7 +181,7 @@ struct PianoRollView: View {
 
     private func triggerNoteOn(_ note: UInt8) {
         guard !appState.activeNotes.contains(note) else { return }
-        MIDIManager.shared.sendNoteOn(
+        MIDIPipeline.shared.sendNoteOn(
             note: note,
             velocity: UInt8(appState.velocity),
             channel: appState.channel,
@@ -192,7 +192,7 @@ struct PianoRollView: View {
 
     private func triggerNoteOff(_ note: UInt8) {
         guard appState.activeNotes.contains(note) else { return }
-        MIDIManager.shared.sendNoteOff(
+        MIDIPipeline.shared.sendNoteOff(
             note: note,
             channel: appState.channel,
             destinationUID: appState.selectedDestinationUID

@@ -18,6 +18,9 @@
 		10000009 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000009 /* ContentView.swift */; };
 		10000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 20000010 /* Assets.xcassets */; };
 		10000011 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20000011 /* CoreMIDI.framework */; };
+		10000012 /* MIDIEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000012 /* MIDIEvent.swift */; };
+		10000013 /* MIDIProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000013 /* MIDIProcessor.swift */; };
+		10000014 /* MIDIPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000014 /* MIDIPipeline.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +36,9 @@
 		20000009 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		20000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		20000011 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
+		20000012 /* MIDIEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIEvent.swift; sourceTree = "<group>"; };
+		20000013 /* MIDIProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIProcessor.swift; sourceTree = "<group>"; };
+		20000014 /* MIDIPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIPipeline.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +67,7 @@
 			children = (
 				20000001 /* KKBBApp.swift */,
 				40000002 /* Models */,
+				40000007 /* Pipeline */,
 				40000003 /* Services */,
 				40000004 /* Views */,
 				20000010 /* Assets.xcassets */,
@@ -76,6 +83,16 @@
 				20000004 /* AppState.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		40000007 /* Pipeline */ = {
+			isa = PBXGroup;
+			children = (
+				20000012 /* MIDIEvent.swift */,
+				20000013 /* MIDIProcessor.swift */,
+				20000014 /* MIDIPipeline.swift */,
+			);
+			path = Pipeline;
 			sourceTree = "<group>";
 		};
 		40000003 /* Services */ = {
@@ -186,6 +203,9 @@
 				10000002 /* KeyboardMode.swift in Sources */,
 				10000003 /* PianoKey.swift in Sources */,
 				10000004 /* AppState.swift in Sources */,
+				10000012 /* MIDIEvent.swift in Sources */,
+				10000013 /* MIDIProcessor.swift in Sources */,
+				10000014 /* MIDIPipeline.swift in Sources */,
 				10000005 /* MIDIManager.swift in Sources */,
 				10000006 /* KeyboardMonitor.swift in Sources */,
 				10000007 /* TopBarView.swift in Sources */,

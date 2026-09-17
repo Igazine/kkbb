@@ -148,6 +148,21 @@ public final class MIDIManager {
     }
 }
 
+extension MIDIManager: MIDIEventReceiver {
+    public func receive(event: MIDIEvent, destinationUID: Int32?) {
+        switch event {
+        case .noteOn(let note, let velocity, let channel):
+            sendNoteOn(note: note, velocity: velocity, channel: channel, destinationUID: destinationUID)
+        case .noteOff(let note, let velocity, let channel):
+            sendNoteOff(note: note, velocity: velocity, channel: channel, destinationUID: destinationUID)
+        case .allNotesOff(let channel):
+            allNotesOff(channel: channel, destinationUID: destinationUID)
+        case .controlChange(let controller, let value, let channel):
+            sendCC(controller: controller, value: value, channel: channel, destinationUID: destinationUID)
+        }
+    }
+}
+
 public extension Notification.Name {
     static let midiDestinationsChanged = Notification.Name("com.digigun.kkbb.midiDestinationsChanged")
 }
