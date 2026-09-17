@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TopBarView: View {
     @Bindable var appState: AppState
+    @Binding var showSettings: Bool
 
     var body: some View {
         VStack(spacing: 8) {
@@ -108,6 +109,16 @@ struct TopBarView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .help("All Notes Off")
+
+                // Settings Button
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .help("Settings (⌘,)")
             }
         }
         .padding(.horizontal, 14)

@@ -6,6 +6,8 @@ public final class KeyboardMonitor {
 
     private var localMonitor: Any?
     private var pressedKeyToNote: [UInt16: UInt8] = [:]
+    private var pressedKeyToCC: [UInt16: CCKeyBinding] = [:]
+    private var activeCCToggleStates: [UUID: Bool] = [:]
     private weak var appState: AppState?
     private let pipeline = MIDIPipeline.shared
 
@@ -45,7 +47,7 @@ public final class KeyboardMonitor {
     private func handleEvent(_ event: NSEvent) -> Bool {
         guard let appState = appState else { return false }
 
-        // Let system commands (Cmd+Q, Cmd+W, Cmd+H, etc.) pass through normally
+        // Let system commands (Cmd+Q, Cmd+W, Cmd+H, Cmd+,, etc.) pass through normally
         if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.control) {
             return false
         }
@@ -107,12 +109,33 @@ public final class KeyboardMonitor {
                 return true
             }
 
-            // Check if this key is already pressed
+            // Check if this key matches a configured MIDI CC Key Trigger
+            if let ccBinding = appState.activeProfile.ccBindings.first(where: { matchesKey(keyChar: $0.keyChar, event: event) }) {
+                let channel = appState.channel
+                let destUID = appState.selectedDestinationUID
+
+                switch ccBinding.mode {
+                case .momentary:
+                    pressedKeyToCC[event.keyCode] = ccBinding
+                    pipeline.sendCC(controller: ccBinding.controller, value: ccBinding.value, channel: channel, destinationUID: destUID)
+                case .trigger:
+                    pipeline.sendCC(controller: ccBinding.controller, value: ccBinding.value, channel: channel, destinationUID: destUID)
+                case .toggle:
+                    let currentlyOn = activeCCToggleStates[ccBinding.id] ?? false
+                    let newState = !currentlyOn
+                    activeCCToggleStates[ccBinding.id] = newState
+                    let val: UInt8 = newState ? ccBinding.value : 0
+                    pipeline.sendCC(controller: ccBinding.controller, value: val, channel: channel, destinationUID: destUID)
+                }
+                return true
+            }
+
+            // Check if this key is already pressed for note
             if pressedKeyToNote[event.keyCode] != nil {
                 return true
             }
 
-            guard let note = resolveNote(for: event, mode: appState.mode, octave: appState.octave) else {
+            guard let note = resolveNote(for: event, mode: appState.mode, octave: appState.octave, profile: appState.activeProfile) else {
                 return false
             }
 
@@ -129,6 +152,17 @@ public final class KeyboardMonitor {
             return true
 
         } else if event.type == .keyUp {
+            // Check if this key was triggering a momentary CC
+            if let ccBinding = pressedKeyToCC.removeValue(forKey: event.keyCode) {
+                if ccBinding.mode == .momentary {
+                    let channel = appState.channel
+                    let destUID = appState.selectedDestinationUID
+                    pipeline.sendCC(controller: ccBinding.controller, value: 0, channel: channel, destinationUID: destUID)
+                    return true
+                }
+            }
+
+            // Check if this key was playing a note
             guard let note = pressedKeyToNote.removeValue(forKey: event.keyCode) else {
                 return false
             }
@@ -152,76 +186,78 @@ public final class KeyboardMonitor {
             pipeline.sendNoteOff(note: note, channel: appState.channel, destinationUID: appState.selectedDestinationUID)
         }
         pressedKeyToNote.removeAll()
+        pressedKeyToCC.removeAll()
+        activeCCToggleStates.removeAll()
         pipeline.allNotesOff(channel: appState.channel, destinationUID: appState.selectedDestinationUID)
         DispatchQueue.main.async {
             appState.activeNotes.removeAll()
         }
     }
 
-    private func resolveNote(for event: NSEvent, mode: KeyboardMode, octave: Int) -> UInt8? {
-        guard let char = event.charactersIgnoringModifiers?.lowercased().first else {
+    private func resolveNote(for event: NSEvent, mode: KeyboardMode, octave: Int, profile: KeyBindingProfile) -> UInt8? {
+        guard let charStr = event.charactersIgnoringModifiers?.lowercased(),
+              let char = charStr.first else {
             return nil
         }
+        let keyString = String(char)
 
         let baseNote = UInt8((octave + 1) * 12) // Octave 3 -> Note 48 (C3)
 
         switch mode {
         case .oneOctave:
-            guard let semitone = oneOctaveMapping[char] else { return nil }
-            let finalNote = Int(baseNote) + semitone
-            return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
-
+            if let semitone = profile.oneOctaveNoteMap[keyString] {
+                let finalNote = Int(baseNote) + semitone
+                return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
+            }
         case .twoOctaves:
-            guard let semitone = twoOctaveMapping[char] else { return nil }
-            let finalNote = Int(baseNote) + semitone
-            return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
+            if let semitone = profile.twoOctaveNoteMap[keyString] {
+                let finalNote = Int(baseNote) + semitone
+                return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
+            }
         }
+        return nil
     }
 
-    // Semi-tone offsets for 1-octave mode
-    private let oneOctaveMapping: [Character: Int] = [
-        "a": 0,   // C
-        "w": 1,   // C#
-        "s": 2,   // D
-        "e": 3,   // D#
-        "d": 4,   // E
-        "f": 5,   // F
-        "t": 6,   // F#
-        "g": 7,   // G
-        "y": 8,   // G#
-        "h": 9,   // A
-        "u": 10,  // A#
-        "j": 11,  // B
-        "k": 12   // C (next octave)
-    ]
+    private func matchesKey(keyChar: String, event: NSEvent) -> Bool {
+        let normalized = keyChar.trimmingCharacters(in: .whitespaces).lowercased()
+        if normalized.count == 1 {
+            if let chars = event.charactersIgnoringModifiers?.lowercased() {
+                return chars == normalized
+            }
+        }
 
-    // Semi-tone offsets for 2-octave mode
-    private let twoOctaveMapping: [Character: Int] = [
-        "z": 0,   // C
-        "s": 1,   // C#
-        "x": 2,   // D
-        "d": 3,   // D#
-        "c": 4,   // E
-        "v": 5,   // F
-        "g": 6,   // F#
-        "b": 7,   // G
-        "h": 8,   // G#
-        "n": 9,   // A
-        "j": 10,  // A#
-        "m": 11,  // B
-        ",": 12,  // C (octave 2)
-        "q": 12,  // C (octave 2)
-        "2": 13,  // C# (octave 2)
-        "w": 14,  // D (octave 2)
-        "3": 15,  // D# (octave 2)
-        "e": 16,  // E (octave 2)
-        "r": 17,  // F (octave 2)
-        "5": 18,  // F# (octave 2)
-        "t": 19,  // G (octave 2)
-        "6": 20,  // G# (octave 2)
-        "y": 21,  // A (octave 2)
-        "7": 22,  // A# (octave 2)
-        "u": 23,  // B (octave 2)
-        "i": 24   // C (octave 3)
-    ]
+        switch normalized {
+        case "pageup", "page up":
+            return event.keyCode == 116
+        case "pagedown", "page down":
+            return event.keyCode == 121
+        case "home":
+            return event.keyCode == 115
+        case "end":
+            return event.keyCode == 119
+        case "space":
+            return event.keyCode == 49
+        case "tab":
+            return event.keyCode == 48
+        case "return", "enter":
+            return event.keyCode == 36
+        case "f1": return event.keyCode == 122
+        case "f2": return event.keyCode == 120
+        case "f3": return event.keyCode == 99
+        case "f4": return event.keyCode == 118
+        case "f5": return event.keyCode == 96
+        case "f6": return event.keyCode == 97
+        case "f7": return event.keyCode == 98
+        case "f8": return event.keyCode == 100
+        case "f9": return event.keyCode == 101
+        case "f10": return event.keyCode == 109
+        case "f11": return event.keyCode == 103
+        case "f12": return event.keyCode == 111
+        default:
+            if let chars = event.charactersIgnoringModifiers?.lowercased() {
+                return chars == normalized
+            }
+            return false
+        }
+    }
 }

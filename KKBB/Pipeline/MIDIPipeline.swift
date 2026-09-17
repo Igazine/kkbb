@@ -59,4 +59,16 @@ public final class MIDIPipeline: MIDIEventReceiver {
     public func allNotesOff(channel: Int, destinationUID: Int32?) {
         receive(event: .allNotesOff(channel: channel), destinationUID: destinationUID)
     }
+
+    public func sendPitchBend(value: UInt16, channel: Int, destinationUID: Int32?) {
+        receive(event: .pitchBend(value: value, channel: channel), destinationUID: destinationUID)
+    }
+
+    public func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?) {
+        receive(event: .controlChange(controller: controller, value: value, channel: channel), destinationUID: destinationUID)
+    }
+
+    public func sendModulation(value: UInt8, channel: Int, destinationUID: Int32?) {
+        sendCC(controller: 1, value: value, channel: channel, destinationUID: destinationUID)
+    }
 }

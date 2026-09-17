@@ -101,10 +101,25 @@ public final class MIDIManager {
         sendCC(controller: 120, value: 0, channel: channel, destinationUID: destinationUID)
     }
 
-    private func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?) {
+    public func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?) {
         let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
         let statusByte = 0xB0 | ch
-        sendRawBytes([statusByte, controller, value], destinationUID: destinationUID)
+        let clampedController = Swift.min(controller, 127)
+        let clampedValue = Swift.min(value, 127)
+        sendRawBytes([statusByte, clampedController, clampedValue], destinationUID: destinationUID)
+    }
+
+    public func sendModulation(value: UInt8, channel: Int, destinationUID: Int32?) {
+        sendCC(controller: 1, value: value, channel: channel, destinationUID: destinationUID)
+    }
+
+    public func sendPitchBend(value: UInt16, channel: Int, destinationUID: Int32?) {
+        let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
+        let statusByte = 0xE0 | ch
+        let clamped = Swift.max(0, Swift.min(16383, Int(value)))
+        let lsb = UInt8(clamped & 0x7F)
+        let msb = UInt8((clamped >> 7) & 0x7F)
+        sendRawBytes([statusByte, lsb, msb], destinationUID: destinationUID)
     }
 
     private func sendMIDIMessage(status: UInt8, note: UInt8, velocity: UInt8, channel: Int, destinationUID: Int32?) {
@@ -159,6 +174,8 @@ extension MIDIManager: MIDIEventReceiver {
             allNotesOff(channel: channel, destinationUID: destinationUID)
         case .controlChange(let controller, let value, let channel):
             sendCC(controller: controller, value: value, channel: channel, destinationUID: destinationUID)
+        case .pitchBend(let value, let channel):
+            sendPitchBend(value: value, channel: channel, destinationUID: destinationUID)
         }
     }
 }

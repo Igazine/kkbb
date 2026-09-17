@@ -130,7 +130,7 @@ struct PianoRollView: View {
         blackWidth: CGFloat,
         blackHeight: CGFloat
     ) {
-        let hitNote = resolveKeyAt(
+        let hit = resolveKeyAt(
             point: point,
             whiteKeys: whiteKeys,
             blackKeys: blackKeys,
@@ -140,13 +140,23 @@ struct PianoRollView: View {
             blackHeight: blackHeight
         )
 
+        let hitNote = hit?.note
+
         if hitNote != mouseHeldNote {
             if let old = mouseHeldNote {
                 triggerNoteOff(old)
             }
             mouseHeldNote = hitNote
-            if let note = hitNote {
-                triggerNoteOn(note)
+            if let hit = hit {
+                let effectiveHeight = hit.isBlack ? blackHeight : keyHeight
+                let yRatio = Swift.max(0.0, Swift.min(1.0, Double(point.y / max(1, effectiveHeight))))
+                let velocity: UInt8
+                if appState.activeProfile.mouseVerticalVelocityEnabled {
+                    velocity = UInt8(Swift.max(1, Swift.min(127, Int(1.0 + (yRatio * 126.0)))))
+                } else {
+                    velocity = UInt8(appState.velocity)
+                }
+                triggerNoteOn(hit.note, velocity: velocity)
             }
         }
     }
@@ -159,7 +169,7 @@ struct PianoRollView: View {
         keyHeight: CGFloat,
         blackWidth: CGFloat,
         blackHeight: CGFloat
-    ) -> UInt8? {
+    ) -> (note: UInt8, isBlack: Bool)? {
         guard point.y >= 0, point.y <= keyHeight else { return nil }
 
         // Check black keys first if within black key height
@@ -167,7 +177,7 @@ struct PianoRollView: View {
             for key in blackKeys {
                 let xOffset = calculateBlackKeyX(key: key, whiteWidth: keyWidth, blackWidth: blackWidth)
                 if point.x >= xOffset && point.x <= (xOffset + blackWidth) {
-                    return key.noteNumber
+                    return (key.noteNumber, true)
                 }
             }
         }
@@ -175,17 +185,17 @@ struct PianoRollView: View {
         // Check white keys
         let whiteIndex = Int(point.x / keyWidth)
         if whiteIndex >= 0 && whiteIndex < whiteKeys.count {
-            return whiteKeys[whiteIndex].noteNumber
+            return (whiteKeys[whiteIndex].noteNumber, false)
         }
 
         return nil
     }
 
-    private func triggerNoteOn(_ note: UInt8) {
+    private func triggerNoteOn(_ note: UInt8, velocity: UInt8) {
         guard !appState.activeNotes.contains(note) else { return }
         MIDIPipeline.shared.sendNoteOn(
             note: note,
-            velocity: UInt8(appState.velocity),
+            velocity: velocity,
             channel: appState.channel,
             destinationUID: appState.selectedDestinationUID
         )

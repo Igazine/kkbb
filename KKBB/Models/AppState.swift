@@ -54,6 +54,19 @@ public final class AppState {
 
     public var activeNotes: Set<UInt8> = []
     public var availableDestinations: [MIDIEndpointInfo] = []
+    public var pitchBend: UInt16 = 8192
+    public var modulation: UInt8 = 0
+
+    public var activeProfile: KeyBindingProfile {
+        didSet {
+            saveProfiles()
+        }
+    }
+    public var userProfiles: [KeyBindingProfile] {
+        didSet {
+            saveProfiles()
+        }
+    }
 
     public init() {
         if let savedMode = defaults.string(forKey: "kkbb.mode"),
@@ -77,5 +90,75 @@ public final class AppState {
 
         let savedVelocity = defaults.integer(forKey: "kkbb.velocity")
         self.velocity = (1...127).contains(savedVelocity) ? savedVelocity : 100
+
+        // Load profiles
+        var loadedProfiles: [KeyBindingProfile] = []
+        if let data = defaults.data(forKey: "kkbb.userProfiles"),
+           let decoded = try? JSONDecoder().decode([KeyBindingProfile].self, from: data) {
+            loadedProfiles = decoded
+        }
+        self.userProfiles = loadedProfiles
+
+        if let activeIDStr = defaults.string(forKey: "kkbb.activeProfileID"),
+           let activeUUID = UUID(uuidString: activeIDStr),
+           let found = loadedProfiles.first(where: { $0.id == activeUUID }) {
+            self.activeProfile = found
+        } else {
+            self.activeProfile = KeyBindingProfile.defaultProfile
+        }
+    }
+
+    public var allProfiles: [KeyBindingProfile] {
+        [KeyBindingProfile.defaultProfile] + userProfiles
+    }
+
+    public func selectProfile(_ profile: KeyBindingProfile) {
+        self.activeProfile = profile
+        defaults.set(profile.id.uuidString, forKey: "kkbb.activeProfileID")
+    }
+
+    public func selectProfile(id: UUID) {
+        if id == KeyBindingProfile.defaultProfile.id {
+            selectProfile(KeyBindingProfile.defaultProfile)
+        } else if let found = userProfiles.first(where: { $0.id == id }) {
+            selectProfile(found)
+        }
+    }
+
+    public func updateActiveProfile() {
+        if let idx = userProfiles.firstIndex(where: { $0.id == activeProfile.id }) {
+            userProfiles[idx] = activeProfile
+        }
+        saveProfiles()
+    }
+
+    public func createProfile(name: String, duplicateFrom: KeyBindingProfile? = nil) {
+        let base = duplicateFrom ?? activeProfile
+        let newProfile = KeyBindingProfile(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            isReadOnly: false,
+            oneOctaveNoteMap: base.oneOctaveNoteMap,
+            twoOctaveNoteMap: base.twoOctaveNoteMap,
+            ccBindings: base.ccBindings,
+            mouseVerticalVelocityEnabled: base.mouseVerticalVelocityEnabled
+        )
+        userProfiles.append(newProfile)
+        selectProfile(newProfile)
+        saveProfiles()
+    }
+
+    public func deleteProfile(id: UUID) {
+        userProfiles.removeAll { $0.id == id }
+        if activeProfile.id == id {
+            selectProfile(KeyBindingProfile.defaultProfile)
+        }
+        saveProfiles()
+    }
+
+    public func saveProfiles() {
+        if let encoded = try? JSONEncoder().encode(userProfiles) {
+            defaults.set(encoded, forKey: "kkbb.userProfiles")
+        }
+        defaults.set(activeProfile.id.uuidString, forKey: "kkbb.activeProfileID")
     }
 }

@@ -21,6 +21,9 @@
 		10000012 /* MIDIEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000012 /* MIDIEvent.swift */; };
 		10000013 /* MIDIProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000013 /* MIDIProcessor.swift */; };
 		10000014 /* MIDIPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000014 /* MIDIPipeline.swift */; };
+		10000015 /* KeyBindingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000015 /* KeyBindingProfile.swift */; };
+		10000016 /* PitchModWheelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000016 /* PitchModWheelsView.swift */; };
+		10000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000017 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +42,9 @@
 		20000012 /* MIDIEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIEvent.swift; sourceTree = "<group>"; };
 		20000013 /* MIDIProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIProcessor.swift; sourceTree = "<group>"; };
 		20000014 /* MIDIPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIPipeline.swift; sourceTree = "<group>"; };
+		20000015 /* KeyBindingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBindingProfile.swift; sourceTree = "<group>"; };
+		20000016 /* PitchModWheelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchModWheelsView.swift; sourceTree = "<group>"; };
+		20000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +87,7 @@
 				20000002 /* KeyboardMode.swift */,
 				20000003 /* PianoKey.swift */,
 				20000004 /* AppState.swift */,
+				20000015 /* KeyBindingProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -110,6 +117,8 @@
 				20000009 /* ContentView.swift */,
 				20000007 /* TopBarView.swift */,
 				20000008 /* PianoRollView.swift */,
+				20000016 /* PitchModWheelsView.swift */,
+				20000017 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -206,10 +215,13 @@
 				10000012 /* MIDIEvent.swift in Sources */,
 				10000013 /* MIDIProcessor.swift in Sources */,
 				10000014 /* MIDIPipeline.swift in Sources */,
+				10000015 /* KeyBindingProfile.swift in Sources */,
 				10000005 /* MIDIManager.swift in Sources */,
 				10000006 /* KeyboardMonitor.swift in Sources */,
 				10000007 /* TopBarView.swift in Sources */,
 				10000008 /* PianoRollView.swift in Sources */,
+				10000016 /* PitchModWheelsView.swift in Sources */,
+				10000017 /* SettingsView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
