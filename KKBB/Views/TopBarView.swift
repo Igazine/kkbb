@@ -6,7 +6,7 @@ struct TopBarView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 16) {
+            HStack(alignment: .bottom, spacing: 16) {
                 // Mode
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Mode")
@@ -59,6 +59,7 @@ struct TopBarView: View {
                 Toggle("One-Shot", isOn: $appState.isOneShotMode)
                     .toggleStyle(.checkbox)
                     .font(.caption)
+                    .padding(.bottom, 3)
                     .help("One-Shot Mode: sends a short 50ms trigger note without sustain (ideal for drums and percussion)")
 
                 Spacer()
@@ -68,7 +69,6 @@ struct TopBarView: View {
                     KeyboardMonitor.shared.allNotesOff()
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
                 .help("All Notes Off")
 
                 // Settings Button
@@ -78,7 +78,6 @@ struct TopBarView: View {
                     Image(systemName: "gearshape")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
                 .help("Settings (⌘,)")
             }
         }
