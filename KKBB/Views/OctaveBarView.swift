@@ -12,6 +12,7 @@ public struct OctaveBarView: View {
             ForEach(0...6, id: \.self) { octaveIndex in
                 let isSelected = appState.octave == octaveIndex
                 Button {
+                    NSApp.keyWindow?.makeFirstResponder(nil)
                     appState.octave = octaveIndex
                 } label: {
                     ZStack {
@@ -34,9 +35,11 @@ public struct OctaveBarView: View {
                     .frame(height: 20)
                 }
                 .buttonStyle(.plain)
+                .focusable(false)
                 .help("Octave C\(octaveIndex)")
             }
         }
+        .focusable(false)
         .padding(.horizontal, 4)
         .padding(.vertical, 5)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.4))

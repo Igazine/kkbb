@@ -25,6 +25,12 @@ struct ContentView: View {
                         .frame(minHeight: 120, maxHeight: .infinity)
                 }
             }
+            .focusable(false)
+            .simultaneousGesture(
+                TapGesture().onEnded { _ in
+                    NSApp.keyWindow?.makeFirstResponder(nil)
+                }
+            )
         }
         .frame(minWidth: 720, minHeight: 220)
         .sheet(isPresented: $showSettings) {
@@ -36,11 +42,15 @@ struct ContentView: View {
                 showSettings = true
             }
             .keyboardShortcut(",", modifiers: .command)
+            .focusable(false)
             .opacity(0)
         }
         .onAppear {
             refreshDestinations()
             KeyboardMonitor.shared.start(with: appState)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                NSApp.keyWindow?.makeFirstResponder(nil)
+            }
         }
         .onDisappear {
             KeyboardMonitor.shared.stop()

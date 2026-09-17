@@ -219,6 +219,10 @@ public final class KeyboardMonitor {
     }
 
     private func matchesKey(keyChar: String, event: NSEvent) -> Bool {
+        if keyChar == " " || keyChar.lowercased() == "space" {
+            return event.keyCode == 49
+        }
+
         let normalized = keyChar.trimmingCharacters(in: .whitespaces).lowercased()
         if normalized.count == 1 {
             if let chars = event.charactersIgnoringModifiers?.lowercased() {

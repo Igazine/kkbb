@@ -118,7 +118,9 @@ struct PianoRollView: View {
                         }
                     }
             )
+            .focusable(false)
         }
+        .focusable(false)
     }
 
     private func handleDrag(
@@ -130,6 +132,7 @@ struct PianoRollView: View {
         blackWidth: CGFloat,
         blackHeight: CGFloat
     ) {
+        NSApp.keyWindow?.makeFirstResponder(nil)
         let hit = resolveKeyAt(
             point: point,
             whiteKeys: whiteKeys,

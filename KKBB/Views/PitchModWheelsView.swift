@@ -72,6 +72,7 @@ public struct PitchModWheelsView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
+                                NSApp.keyWindow?.makeFirstResponder(nil)
                                 let usableHeight = max(10, wheelHeight - 34)
                                 // Inverted Y: dragging up increases velocity
                                 let clickYFromBottom = wheelHeight - value.location.y
@@ -140,6 +141,7 @@ public struct PitchModWheelsView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
+                                NSApp.keyWindow?.makeFirstResponder(nil)
                                 isPitchActive = true
                                 let deltaY = -value.translation.height
                                 let travel = halfHeight * 0.8
@@ -223,6 +225,7 @@ public struct PitchModWheelsView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
+                                NSApp.keyWindow?.makeFirstResponder(nil)
                                 let usableHeight = max(10, wheelHeight - 34)
                                 // Inverted Y: dragging up increases modulation
                                 let clickYFromBottom = wheelHeight - value.location.y
@@ -242,6 +245,7 @@ public struct PitchModWheelsView: View {
             .padding(.vertical, 4)
             .background(Color(nsColor: .windowBackgroundColor).opacity(0.5))
         }
+        .focusable(false)
         .frame(width: 92)
     }
 }
