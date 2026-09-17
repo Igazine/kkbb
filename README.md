@@ -213,6 +213,14 @@ KKBB features an intermediate pipeline separating note triggers and controllers 
 
 ---
 
+## Screenshots
+
+![1-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.20.46.png)
+![2-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.25.39.png)
+![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-17%20at%2019.26.37.png)
+
+---
+
 ## License
 
 This project is open-source software licensed under the [MIT License](LICENSE).
