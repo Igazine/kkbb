@@ -228,6 +228,15 @@ public final class KeyboardMonitor {
                 }
 
                 guard let pad = matchedPad else { return false }
+
+                // Check if this pad is assigned to a MIDI Command (Transport / Panic)
+                if pad.midiCommand != nil {
+                    DispatchQueue.main.async {
+                        appState.triggerDrumPadOn(bank: pad.bank, padIndex: pad.padIndex)
+                    }
+                    return true
+                }
+
                 let notesToPlay = pad.notesToSend
                 guard !notesToPlay.isEmpty else { return false }
 
@@ -304,20 +313,44 @@ public final class KeyboardMonitor {
                 }
             }
 
-            // Check if this key was playing notes
-            guard let notes = pressedKeyToNotes.removeValue(forKey: event.keyCode) else {
-                return false
-            }
-
             if appState.mode == .drumGrid {
+                var handledDrumPad = false
                 for (_, cfg) in appState.activeProfile.drumPads {
                     if cfg.matches(event: event) {
                         let padKey = "\(cfg.bank)_\(cfg.padIndex)"
                         DispatchQueue.main.async {
                             appState.activeDrumPadKeys.remove(padKey)
                         }
+                        handledDrumPad = true
                     }
                 }
+
+                if let notes = pressedKeyToNotes.removeValue(forKey: event.keyCode) {
+                    if !appState.isOneShotMode {
+                        let channel = appState.channel
+                        let destUID = appState.selectedDestinationUID
+                        for n in notes {
+                            pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
+                        }
+
+                        DispatchQueue.main.async {
+                            for n in notes {
+                                appState.activeNotes.remove(n)
+                            }
+                        }
+                    }
+                    return true
+                }
+
+                if handledDrumPad {
+                    return true
+                }
+                return false
+            }
+
+            // Check if this key was playing notes
+            guard let notes = pressedKeyToNotes.removeValue(forKey: event.keyCode) else {
+                return false
             }
 
             if !appState.isOneShotMode {
