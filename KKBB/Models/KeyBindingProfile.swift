@@ -60,8 +60,8 @@ public struct KnobConfig: Identifiable, Codable, Hashable {
         KnobConfig(label: "VOL", controller: 7, value: 100, defaultValue: 100),
         KnobConfig(label: "PAN", controller: 10, value: 64, defaultValue: 64),
         KnobConfig(label: "EXPR", controller: 11, value: 127, defaultValue: 127),
-        KnobConfig(label: "RESO", controller: 71, value: 64, defaultValue: 64),
         KnobConfig(label: "CUTOFF", controller: 74, value: 64, defaultValue: 64),
+        KnobConfig(label: "RESO", controller: 71, value: 64, defaultValue: 64),
         KnobConfig(label: "REVERB", controller: 91, value: 0, defaultValue: 0)
     ]
 }
