@@ -75,6 +75,9 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * `u` - Send note A#
 * `j` - Send note B
 * `k` - Send note C (next octave)
+* `o` - Send note C# (next octave)
+* `l` - Send note D (next octave)
+* `p` - Send note D# (next octave)
 
 ### Two-octave mode
 
@@ -104,6 +107,10 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * `7` - Send note A# (octave 2)
 * `u` - Send note B (octave 2)
 * `i` - Send note C (octave 3)
+* `9` - Send note C# (octave 3)
+* `o` - Send note D (octave 3)
+* `0` - Send note D# (octave 3)
+* `p` - Send note E (octave 3)
 
 ## Additional notes, may change later
 

@@ -108,6 +108,7 @@ public final class AppState {
 
         if let activeIDStr = defaults.string(forKey: "kkbb.activeProfileID"),
            let activeUUID = UUID(uuidString: activeIDStr),
+           activeUUID != KeyBindingProfile.defaultProfile.id,
            let found = loadedProfiles.first(where: { $0.id == activeUUID }) {
             self.activeProfile = found
         } else {

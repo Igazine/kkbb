@@ -9,6 +9,7 @@ struct KeyDescriptor: Identifiable {
     let shortcut: String?
     let whiteIndex: Int // Index among white keys (if white)
     let octaveOffset: Int
+    var boundaryIndex: CGFloat? = nil
 }
 
 struct PianoRollView: View {
@@ -231,15 +232,19 @@ struct PianoRollView: View {
     private func calculateBlackKeyX(key: KeyDescriptor, whiteWidth: CGFloat, blackWidth: CGFloat) -> CGFloat {
         // Position black key centered at the boundary between white keys
         let boundaryIndex: CGFloat
-        let whiteBase = CGFloat(key.octaveOffset * 7)
+        if let explicit = key.boundaryIndex {
+            boundaryIndex = explicit
+        } else {
+            let whiteBase = CGFloat(key.octaveOffset * 7)
 
-        switch key.whiteIndex {
-        case 0: boundaryIndex = whiteBase + 1 // C# between C (0) and D (1)
-        case 1: boundaryIndex = whiteBase + 2 // D# between D (1) and E (2)
-        case 3: boundaryIndex = whiteBase + 4 // F# between F (3) and G (4)
-        case 4: boundaryIndex = whiteBase + 5 // G# between G (4) and A (5)
-        case 5: boundaryIndex = whiteBase + 6 // A# between A (5) and B (6)
-        default: boundaryIndex = 0
+            switch key.whiteIndex {
+            case 0: boundaryIndex = whiteBase + 1 // C# between C (0) and D (1)
+            case 1: boundaryIndex = whiteBase + 2 // D# between D (1) and E (2)
+            case 3: boundaryIndex = whiteBase + 4 // F# between F (3) and G (4)
+            case 4: boundaryIndex = whiteBase + 5 // G# between G (4) and A (5)
+            case 5: boundaryIndex = whiteBase + 6 // A# between A (5) and B (6)
+            default: boundaryIndex = 0
+            }
         }
 
         return (boundaryIndex * whiteWidth) - (blackWidth / 2.0)
@@ -250,7 +255,7 @@ struct PianoRollView: View {
         var blacks: [KeyDescriptor] = []
 
         let octaves = (mode == .oneOctave) ? 1 : 2
-        let shortcuts = (mode == .oneOctave) ? oneOctaveShortcuts : twoOctaveShortcuts
+        let shortcuts = shortcutsForMode(mode)
 
         let noteNamesWhite = ["C", "D", "E", "F", "G", "A", "B"]
         let whiteOffsets = [0, 2, 4, 5, 7, 9, 11]
@@ -303,6 +308,7 @@ struct PianoRollView: View {
         }
 
         // Add top C
+        let topCWhiteIndex = globalWhiteIndex
         let topNote = UInt8(clamped: Int(baseNote) + (octaves * 12))
         let topName = "C\(appState.octave + octaves)"
         let topShortcut = shortcuts[octaves * 12]
@@ -317,21 +323,95 @@ struct PianoRollView: View {
                 octaveOffset: octaves
             )
         )
+        globalWhiteIndex += 1
+
+        // Add extra keys: C#, D, D#, E above top C
+        let highOctave = appState.octave + octaves
+
+        // High C#
+        let cSharpNote = UInt8(clamped: Int(baseNote) + (octaves * 12) + 1)
+        let cSharpShortcut = shortcuts[octaves * 12 + 1]
+        blacks.append(
+            KeyDescriptor(
+                id: cSharpNote,
+                noteNumber: cSharpNote,
+                noteName: "C#\(highOctave)",
+                isBlack: true,
+                shortcut: cSharpShortcut,
+                whiteIndex: 0,
+                octaveOffset: octaves,
+                boundaryIndex: CGFloat(topCWhiteIndex + 1)
+            )
+        )
+
+        // High D
+        let highDWhiteIndex = globalWhiteIndex
+        let dNote = UInt8(clamped: Int(baseNote) + (octaves * 12) + 2)
+        let dShortcut = shortcuts[octaves * 12 + 2]
+        whites.append(
+            KeyDescriptor(
+                id: dNote,
+                noteNumber: dNote,
+                noteName: "D\(highOctave)",
+                isBlack: false,
+                shortcut: dShortcut,
+                whiteIndex: globalWhiteIndex,
+                octaveOffset: octaves
+            )
+        )
+        globalWhiteIndex += 1
+
+        // High D#
+        let dSharpNote = UInt8(clamped: Int(baseNote) + (octaves * 12) + 3)
+        let dSharpShortcut = shortcuts[octaves * 12 + 3]
+        blacks.append(
+            KeyDescriptor(
+                id: dSharpNote,
+                noteNumber: dSharpNote,
+                noteName: "D#\(highOctave)",
+                isBlack: true,
+                shortcut: dSharpShortcut,
+                whiteIndex: 1,
+                octaveOffset: octaves,
+                boundaryIndex: CGFloat(highDWhiteIndex + 1)
+            )
+        )
+
+        // High E
+        let eNote = UInt8(clamped: Int(baseNote) + (octaves * 12) + 4)
+        let eShortcut = shortcuts[octaves * 12 + 4]
+        whites.append(
+            KeyDescriptor(
+                id: eNote,
+                noteNumber: eNote,
+                noteName: "E\(highOctave)",
+                isBlack: false,
+                shortcut: eShortcut,
+                whiteIndex: globalWhiteIndex,
+                octaveOffset: octaves
+            )
+        )
+        globalWhiteIndex += 1
 
         return (whites, blacks)
     }
 
-    private let oneOctaveShortcuts: [Int: String] = [
-        0: "a", 1: "w", 2: "s", 3: "e", 4: "d", 5: "f",
-        6: "t", 7: "g", 8: "y", 9: "h", 10: "u", 11: "j", 12: "k"
-    ]
-
-    private let twoOctaveShortcuts: [Int: String] = [
-        0: "z", 1: "s", 2: "x", 3: "d", 4: "c", 5: "v",
-        6: "g", 7: "b", 8: "h", 9: "n", 10: "j", 11: "m",
-        12: "q", 13: "2", 14: "w", 15: "3", 16: "e", 17: "r",
-        18: "5", 19: "t", 20: "6", 21: "y", 22: "7", 23: "u", 24: "i"
-    ]
+    private func shortcutsForMode(_ mode: KeyboardMode) -> [Int: String] {
+        let map = (mode == .oneOctave) ? appState.activeProfile.oneOctaveNoteMap : appState.activeProfile.twoOctaveNoteMap
+        var dict: [Int: String] = [:]
+        for (char, semitone) in map {
+            if let existing = dict[semitone] {
+                let charIsAlnum = char.first?.isLetter == true || char.first?.isNumber == true
+                let existingIsAlnum = existing.first?.isLetter == true || existing.first?.isNumber == true
+                if !existingIsAlnum && charIsAlnum {
+                    dict[semitone] = char
+                }
+            } else {
+                dict[semitone] = char
+            }
+        }
+        return dict
+    }
 }
 
 private extension UInt8 {

@@ -67,7 +67,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public static let defaultProfile: KeyBindingProfile = {
         let oneOctave: [String: Int] = [
             "a": 0, "w": 1, "s": 2, "e": 3, "d": 4, "f": 5,
-            "t": 6, "g": 7, "y": 8, "h": 9, "u": 10, "j": 11, "k": 12
+            "t": 6, "g": 7, "y": 8, "h": 9, "u": 10, "j": 11,
+            "k": 12, "o": 13, "l": 14, "p": 15
         ]
 
         let twoOctave: [String: Int] = [
@@ -75,7 +76,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
             "g": 6, "b": 7, "h": 8, "n": 9, "j": 10, "m": 11,
             ",": 12, "q": 12, "2": 13, "w": 14, "3": 15, "e": 16,
             "r": 17, "5": 18, "t": 19, "6": 20, "y": 21, "7": 22,
-            "u": 23, "i": 24
+            "u": 23, "i": 24, "9": 25, "o": 26, "0": 27, "p": 28
         ]
 
         let defaultCCs: [CCKeyBinding] = [
