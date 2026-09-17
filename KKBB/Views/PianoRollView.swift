@@ -14,7 +14,8 @@ struct KeyDescriptor: Identifiable {
 
 struct PianoRollView: View {
     @Bindable var appState: AppState
-    @State private var mouseHeldNote: UInt8?
+    @State private var mouseHeldRootNote: UInt8?
+    @State private var mouseHeldNotes: [UInt8] = []
 
     // System highlight color, soft and non-fatiguing
     private var highlightColor: Color {
@@ -113,15 +114,26 @@ struct PianoRollView: View {
                         )
                     }
                     .onEnded { _ in
-                        if let held = mouseHeldNote {
+                        for held in mouseHeldNotes {
                             triggerNoteOff(held)
-                            mouseHeldNote = nil
                         }
+                        mouseHeldNotes.removeAll()
+                        mouseHeldRootNote = nil
                     }
             )
             .focusable(false)
         }
         .focusable(false)
+    }
+
+    private func getChordNotes(root: UInt8) -> [UInt8] {
+        if let chordType = appState.activeChordType {
+            return chordType.intervals.compactMap { offset in
+                let final = Int(root) + offset
+                return (0...127).contains(final) ? UInt8(final) : nil
+            }
+        }
+        return [root]
     }
 
     private func handleDrag(
@@ -144,13 +156,15 @@ struct PianoRollView: View {
             blackHeight: blackHeight
         )
 
-        let hitNote = hit?.note
+        let hitRoot = hit?.note
 
-        if hitNote != mouseHeldNote {
-            if let old = mouseHeldNote {
+        if hitRoot != mouseHeldRootNote {
+            for old in mouseHeldNotes {
                 triggerNoteOff(old)
             }
-            mouseHeldNote = hitNote
+            mouseHeldNotes.removeAll()
+            mouseHeldRootNote = hitRoot
+
             if let hit = hit {
                 let effectiveHeight = hit.isBlack ? blackHeight : keyHeight
                 let yRatio = Swift.max(0.0, Swift.min(1.0, Double(point.y / max(1, effectiveHeight))))
@@ -160,7 +174,12 @@ struct PianoRollView: View {
                 } else {
                     velocity = UInt8(appState.velocity)
                 }
-                triggerNoteOn(hit.note, velocity: velocity)
+
+                let notes = getChordNotes(root: hit.note)
+                mouseHeldNotes = notes
+                for n in notes {
+                    triggerNoteOn(n, velocity: velocity)
+                }
             }
         }
     }

@@ -66,6 +66,33 @@ public struct KnobConfig: Identifiable, Codable, Hashable {
     ]
 }
 
+public struct ChordPadConfig: Identifiable, Codable, Hashable {
+    public var id: UUID
+    public var keyTrigger: String // e.g. "f1", "f2", ... "f12"
+    public var chordTypeID: String // references ChordType.id
+
+    public init(id: UUID = UUID(), keyTrigger: String, chordTypeID: String) {
+        self.id = id
+        self.keyTrigger = keyTrigger.lowercased()
+        self.chordTypeID = chordTypeID
+    }
+
+    public static let defaultPads: [ChordPadConfig] = [
+        ChordPadConfig(keyTrigger: "f1", chordTypeID: "none"),
+        ChordPadConfig(keyTrigger: "f2", chordTypeID: "major_triad"),
+        ChordPadConfig(keyTrigger: "f3", chordTypeID: "minor_triad"),
+        ChordPadConfig(keyTrigger: "f4", chordTypeID: "dom7"),
+        ChordPadConfig(keyTrigger: "f5", chordTypeID: "maj7"),
+        ChordPadConfig(keyTrigger: "f6", chordTypeID: "min7"),
+        ChordPadConfig(keyTrigger: "f7", chordTypeID: "half_dim"),
+        ChordPadConfig(keyTrigger: "f8", chordTypeID: "sus4"),
+        ChordPadConfig(keyTrigger: "f9", chordTypeID: "major_pentatonic"),
+        ChordPadConfig(keyTrigger: "f10", chordTypeID: "minor_pentatonic"),
+        ChordPadConfig(keyTrigger: "f11", chordTypeID: "blues_minor"),
+        ChordPadConfig(keyTrigger: "f12", chordTypeID: "dorian")
+    ]
+}
+
 public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public var id: UUID
     public var name: String
@@ -75,6 +102,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public var ccBindings: [CCKeyBinding]
     public var mouseVerticalVelocityEnabled: Bool
     public var knobs: [KnobConfig]
+    public var chordPads: [ChordPadConfig]
 
     public var isDefault: Bool {
         return isReadOnly
@@ -88,7 +116,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         twoOctaveNoteMap: [String: Int],
         ccBindings: [CCKeyBinding] = [],
         mouseVerticalVelocityEnabled: Bool = true,
-        knobs: [KnobConfig] = KnobConfig.defaultKnobs
+        knobs: [KnobConfig] = KnobConfig.defaultKnobs,
+        chordPads: [ChordPadConfig] = ChordPadConfig.defaultPads
     ) {
         self.id = id
         self.name = name
@@ -98,10 +127,11 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.ccBindings = ccBindings
         self.mouseVerticalVelocityEnabled = mouseVerticalVelocityEnabled
         self.knobs = knobs
+        self.chordPads = chordPads
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs
+        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs, chordPads
     }
 
     public init(from decoder: Decoder) throws {
@@ -114,6 +144,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.ccBindings = try container.decodeIfPresent([CCKeyBinding].self, forKey: .ccBindings) ?? []
         self.mouseVerticalVelocityEnabled = try container.decodeIfPresent(Bool.self, forKey: .mouseVerticalVelocityEnabled) ?? true
         self.knobs = try container.decodeIfPresent([KnobConfig].self, forKey: .knobs) ?? KnobConfig.defaultKnobs
+        self.chordPads = try container.decodeIfPresent([ChordPadConfig].self, forKey: .chordPads) ?? ChordPadConfig.defaultPads
     }
 
     public static let defaultProfile: KeyBindingProfile = {
@@ -148,7 +179,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
             twoOctaveNoteMap: twoOctave,
             ccBindings: defaultCCs,
             mouseVerticalVelocityEnabled: true,
-            knobs: KnobConfig.defaultKnobs
+            knobs: KnobConfig.defaultKnobs,
+            chordPads: ChordPadConfig.defaultPads
         )
     }()
 }

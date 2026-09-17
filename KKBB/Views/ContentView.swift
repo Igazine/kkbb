@@ -27,6 +27,10 @@ struct ContentView: View {
 
                     PianoRollView(appState: appState)
                         .frame(minHeight: 120, maxHeight: .infinity)
+
+                    Divider()
+
+                    ChordPadsStripView(appState: appState)
                 }
             }
             .focusable(false)
@@ -36,7 +40,7 @@ struct ContentView: View {
                 }
             )
         }
-        .frame(minWidth: 720, minHeight: 285)
+        .frame(minWidth: 720, minHeight: 330)
         .sheet(isPresented: $showSettings) {
             SettingsView(appState: appState)
         }

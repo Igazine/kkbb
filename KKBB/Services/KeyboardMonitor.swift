@@ -5,7 +5,7 @@ public final class KeyboardMonitor {
     public static let shared = KeyboardMonitor()
 
     private var localMonitor: Any?
-    private var pressedKeyToNote: [UInt16: UInt8] = [:]
+    private var pressedKeyToNotes: [UInt16: [UInt8]] = [:]
     private var pressedKeyToCC: [UInt16: CCKeyBinding] = [:]
     private var activeCCToggleStates: [UUID: Bool] = [:]
     private weak var appState: AppState?
@@ -109,6 +109,14 @@ public final class KeyboardMonitor {
                 return true
             }
 
+            // Check if this key matches any Chord Pad hot-key
+            if let padIndex = appState.activeProfile.chordPads.firstIndex(where: { matchesKey(keyChar: $0.keyTrigger, event: event) }) {
+                DispatchQueue.main.async {
+                    appState.toggleChordPad(index: padIndex)
+                }
+                return true
+            }
+
             // Check if this key matches a configured MIDI CC Key Trigger
             if let ccBinding = appState.activeProfile.ccBindings.first(where: { matchesKey(keyChar: $0.keyChar, event: event) }) {
                 let channel = appState.channel
@@ -131,30 +139,46 @@ public final class KeyboardMonitor {
             }
 
             // Check if this key is already pressed for note
-            if pressedKeyToNote[event.keyCode] != nil {
+            if pressedKeyToNotes[event.keyCode] != nil {
                 return true
             }
 
-            guard let note = resolveNote(for: event, mode: appState.mode, octave: appState.octave, profile: appState.activeProfile) else {
+            guard let rootNote = resolveNote(for: event, mode: appState.mode, octave: appState.octave, profile: appState.activeProfile) else {
                 return false
             }
 
-            pressedKeyToNote[event.keyCode] = note
+            let notesToPlay: [UInt8]
+            if let chordType = appState.activeChordType {
+                notesToPlay = chordType.intervals.compactMap { offset in
+                    let final = Int(rootNote) + offset
+                    return (0...127).contains(final) ? UInt8(final) : nil
+                }
+            } else {
+                notesToPlay = [rootNote]
+            }
+
+            pressedKeyToNotes[event.keyCode] = notesToPlay
             let velocity = UInt8(appState.velocity)
             let channel = appState.channel
             let destUID = appState.selectedDestinationUID
 
-            pipeline.sendNoteOn(note: note, velocity: velocity, channel: channel, destinationUID: destUID)
+            for n in notesToPlay {
+                pipeline.sendNoteOn(note: n, velocity: velocity, channel: channel, destinationUID: destUID)
+            }
 
             DispatchQueue.main.async {
-                appState.activeNotes.insert(note)
+                for n in notesToPlay {
+                    appState.activeNotes.insert(n)
+                }
             }
 
             if appState.isOneShotMode {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self, weak appState] in
                     guard let self = self, let appState = appState else { return }
-                    self.pipeline.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
-                    appState.activeNotes.remove(note)
+                    for n in notesToPlay {
+                        self.pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
+                        appState.activeNotes.remove(n)
+                    }
                 }
             }
             return true
@@ -170,18 +194,22 @@ public final class KeyboardMonitor {
                 }
             }
 
-            // Check if this key was playing a note
-            guard let note = pressedKeyToNote.removeValue(forKey: event.keyCode) else {
+            // Check if this key was playing notes
+            guard let notes = pressedKeyToNotes.removeValue(forKey: event.keyCode) else {
                 return false
             }
 
             if !appState.isOneShotMode {
                 let channel = appState.channel
                 let destUID = appState.selectedDestinationUID
-                pipeline.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
+                for n in notes {
+                    pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
+                }
 
                 DispatchQueue.main.async {
-                    appState.activeNotes.remove(note)
+                    for n in notes {
+                        appState.activeNotes.remove(n)
+                    }
                 }
             }
             return true
@@ -192,10 +220,12 @@ public final class KeyboardMonitor {
 
     public func allNotesOff() {
         guard let appState = appState else { return }
-        for note in pressedKeyToNote.values {
-            pipeline.sendNoteOff(note: note, channel: appState.channel, destinationUID: appState.selectedDestinationUID)
+        for notes in pressedKeyToNotes.values {
+            for note in notes {
+                pipeline.sendNoteOff(note: note, channel: appState.channel, destinationUID: appState.selectedDestinationUID)
+            }
         }
-        pressedKeyToNote.removeAll()
+        pressedKeyToNotes.removeAll()
         pressedKeyToCC.removeAll()
         activeCCToggleStates.removeAll()
         pipeline.allNotesOff(channel: appState.channel, destinationUID: appState.selectedDestinationUID)

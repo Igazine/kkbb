@@ -77,6 +77,18 @@ public final class AppState {
         }
     }
 
+    public var activeChordPadIndex: Int? = nil
+
+    public var activeChordType: ChordType? {
+        guard let idx = activeChordPadIndex,
+              idx >= 0 && idx < activeProfile.chordPads.count else {
+            return nil
+        }
+        let pad = activeProfile.chordPads[idx]
+        let type = ChordType.find(by: pad.chordTypeID)
+        return type.id == "none" ? nil : type
+    }
+
     public var activeProfile: KeyBindingProfile {
         didSet {
             saveProfiles()
@@ -128,7 +140,16 @@ public final class AppState {
            let found = loadedProfiles.first(where: { $0.id == activeUUID }) {
             self.activeProfile = found
         } else {
-            self.activeProfile = KeyBindingProfile.defaultProfile
+            var defaultProf = KeyBindingProfile.defaultProfile
+            if let padData = defaults.data(forKey: "kkbb.defaultChordPads"),
+               let customPads = try? JSONDecoder().decode([ChordPadConfig].self, from: padData) {
+                defaultProf.chordPads = customPads
+            }
+            if let knobData = defaults.data(forKey: "kkbb.defaultKnobs"),
+               let customKnobs = try? JSONDecoder().decode([KnobConfig].self, from: knobData) {
+                defaultProf.knobs = customKnobs
+            }
+            self.activeProfile = defaultProf
         }
 
         if let modKnob = self.activeProfile.knobs.first(where: { $0.controller == 1 }) {
@@ -172,11 +193,55 @@ public final class AppState {
             twoOctaveNoteMap: base.twoOctaveNoteMap,
             ccBindings: base.ccBindings,
             mouseVerticalVelocityEnabled: base.mouseVerticalVelocityEnabled,
-            knobs: base.knobs
+            knobs: base.knobs,
+            chordPads: base.chordPads
         )
         userProfiles.append(newProfile)
         selectProfile(newProfile)
         saveProfiles()
+    }
+
+    public func toggleChordPad(index: Int) {
+        if activeChordPadIndex == index {
+            activeChordPadIndex = nil
+        } else {
+            activeChordPadIndex = index
+        }
+    }
+
+    public func updateChordPad(index: Int, chordTypeID: String) {
+        guard index >= 0 && index < activeProfile.chordPads.count else { return }
+        activeProfile.chordPads[index].chordTypeID = chordTypeID
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            saveDefaultChordPads()
+        }
+    }
+
+    public func updateChordPadTrigger(index: Int, keyTrigger: String) {
+        guard index >= 0 && index < activeProfile.chordPads.count else { return }
+        activeProfile.chordPads[index].keyTrigger = keyTrigger.trimmingCharacters(in: .whitespaces).lowercased()
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            saveDefaultChordPads()
+        }
+    }
+
+    public func resetChordPadsToDefault() {
+        activeProfile.chordPads = ChordPadConfig.defaultPads
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            defaults.removeObject(forKey: "kkbb.defaultChordPads")
+        }
+    }
+
+    private func saveDefaultChordPads() {
+        if let encoded = try? JSONEncoder().encode(activeProfile.chordPads) {
+            defaults.set(encoded, forKey: "kkbb.defaultChordPads")
+        }
     }
 
     public func updateKnobValue(index: Int, value: UInt8) {
@@ -207,6 +272,10 @@ public final class AppState {
         }
         if !activeProfile.isDefault {
             updateActiveProfile()
+        } else {
+            if let encoded = try? JSONEncoder().encode(activeProfile.knobs) {
+                defaults.set(encoded, forKey: "kkbb.defaultKnobs")
+            }
         }
     }
 

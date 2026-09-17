@@ -27,6 +27,8 @@
 		10000018 /* OctaveBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000018 /* OctaveBarView.swift */; };
 		10000019 /* RotaryKnobView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000019 /* RotaryKnobView.swift */; };
 		10000020 /* KnobsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000020 /* KnobsStripView.swift */; };
+		10000021 /* ChordType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000021 /* ChordType.swift */; };
+		10000022 /* ChordPadsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000022 /* ChordPadsStripView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +53,8 @@
 		20000018 /* OctaveBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaveBarView.swift; sourceTree = "<group>"; };
 		20000019 /* RotaryKnobView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryKnobView.swift; sourceTree = "<group>"; };
 		20000020 /* KnobsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnobsStripView.swift; sourceTree = "<group>"; };
+		20000021 /* ChordType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordType.swift; sourceTree = "<group>"; };
+		20000022 /* ChordPadsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordPadsStripView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +98,7 @@
 				20000003 /* PianoKey.swift */,
 				20000004 /* AppState.swift */,
 				20000015 /* KeyBindingProfile.swift */,
+				20000021 /* ChordType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -128,6 +133,7 @@
 				20000017 /* SettingsView.swift */,
 				20000019 /* RotaryKnobView.swift */,
 				20000020 /* KnobsStripView.swift */,
+				20000022 /* ChordPadsStripView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -234,6 +240,8 @@
 				10000017 /* SettingsView.swift in Sources */,
 				10000019 /* RotaryKnobView.swift in Sources */,
 				10000020 /* KnobsStripView.swift in Sources */,
+				10000021 /* ChordType.swift in Sources */,
+				10000022 /* ChordPadsStripView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

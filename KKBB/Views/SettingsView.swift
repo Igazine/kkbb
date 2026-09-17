@@ -11,6 +11,7 @@ struct SettingsView: View {
     enum SettingsTab: String, CaseIterable, Identifiable {
         case profiles = "Profiles"
         case keyboard = "Keyboard Notes"
+        case chordPads = "Chord Pads"
         case midiCC = "MIDI CC Triggers"
         case mouse = "Mouse & Input"
 
@@ -20,6 +21,7 @@ struct SettingsView: View {
             switch self {
             case .profiles: return "person.crop.circle"
             case .keyboard: return "pianokeys"
+            case .chordPads: return "square.grid.3x3.square"
             case .midiCC: return "slider.vertical.3"
             case .mouse: return "cursorarrow.rays"
             }
@@ -63,6 +65,8 @@ struct SettingsView: View {
                     profilesTab
                 case .keyboard:
                     keyboardTab
+                case .chordPads:
+                    chordPadsTab
                 case .midiCC:
                     midiCCTab
                 case .mouse:
@@ -72,7 +76,7 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(20)
         }
-        .frame(width: 680, height: 500)
+        .frame(width: 740, height: 520)
     }
 
     // MARK: - Profiles Tab
@@ -556,6 +560,74 @@ struct SettingsView: View {
             .cornerRadius(8)
 
             Spacer()
+        }
+    }
+
+    // MARK: - Chord Pads Tab
+    private var chordPadsTab: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Chord Pads Configuration")
+                        .font(.title3.bold())
+                    Text("Configure the 12 performance pads, hot-keys (e.g. F1-F12), and chord / scale voicings.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Reset to Defaults") {
+                    appState.resetChordPadsToDefault()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    ForEach(Array(appState.activeProfile.chordPads.enumerated()), id: \.element.id) { idx, pad in
+                        HStack(spacing: 8) {
+                            Text("Pad \(idx + 1)")
+                                .font(.system(size: 11, weight: .bold))
+                                .frame(width: 44, alignment: .leading)
+
+                            // Hot-Key TextField
+                            TextField("Key", text: Binding(
+                                get: { pad.keyTrigger.uppercased() },
+                                set: { newKey in
+                                    appState.updateChordPadTrigger(index: idx, keyTrigger: newKey)
+                                }
+                            ))
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 58)
+
+                            // Chord Type Picker
+                            Picker("", selection: Binding(
+                                get: { pad.chordTypeID },
+                                set: { newChord in
+                                    appState.updateChordPad(index: idx, chordTypeID: newChord)
+                                }
+                            )) {
+                                Text("No Chord (Single Note)").tag("none")
+                                Divider()
+                                Section("Chords") {
+                                    ForEach(ChordType.allTypes.filter { $0.category == .chords && $0.id != "none" }) { c in
+                                        Text(c.name).tag(c.id)
+                                    }
+                                }
+                                Section("Bitwig Scales & Modes") {
+                                    ForEach(ChordType.allTypes.filter { $0.category == .scales }) { s in
+                                        Text(s.name).tag(s.id)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(8)
+                        .background(Color.secondary.opacity(0.06))
+                        .cornerRadius(6)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
         }
     }
 }
