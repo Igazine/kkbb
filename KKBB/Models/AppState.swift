@@ -55,7 +55,15 @@ public final class AppState {
     public var activeNotes: Set<UInt8> = []
     public var availableDestinations: [MIDIEndpointInfo] = []
     public var pitchBend: UInt16 = 8192
-    public var modulation: UInt8 = 0
+    public var modulation: UInt8 = 0 {
+        didSet {
+            for i in 0..<activeProfile.knobs.count {
+                if activeProfile.knobs[i].controller == 1 && activeProfile.knobs[i].value != modulation {
+                    activeProfile.knobs[i].value = modulation
+                }
+            }
+        }
+    }
     public var isOneShotMode: Bool {
         didSet {
             defaults.set(isOneShotMode, forKey: "kkbb.isOneShotMode")
@@ -114,6 +122,10 @@ public final class AppState {
         } else {
             self.activeProfile = KeyBindingProfile.defaultProfile
         }
+
+        if let modKnob = self.activeProfile.knobs.first(where: { $0.controller == 1 }) {
+            self.modulation = modKnob.value
+        }
     }
 
     public var allProfiles: [KeyBindingProfile] {
@@ -122,6 +134,9 @@ public final class AppState {
 
     public func selectProfile(_ profile: KeyBindingProfile) {
         self.activeProfile = profile
+        if let modKnob = profile.knobs.first(where: { $0.controller == 1 }) {
+            self.modulation = modKnob.value
+        }
         defaults.set(profile.id.uuidString, forKey: "kkbb.activeProfileID")
     }
 
@@ -160,6 +175,9 @@ public final class AppState {
         guard index >= 0 && index < activeProfile.knobs.count else { return }
         activeProfile.knobs[index].value = value
         let knob = activeProfile.knobs[index]
+        if knob.controller == 1 && modulation != value {
+            modulation = value
+        }
         MIDIPipeline.shared.sendCC(
             controller: knob.controller,
             value: value,
@@ -176,6 +194,9 @@ public final class AppState {
         activeProfile.knobs[index].label = label
         activeProfile.knobs[index].controller = controller
         activeProfile.knobs[index].defaultValue = defaultValue
+        if controller == 1 {
+            activeProfile.knobs[index].value = modulation
+        }
         if !activeProfile.isDefault {
             updateActiveProfile()
         }
