@@ -12,23 +12,28 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 
 ## UI
 
-* A minimal bar at the top for settings and status information:
+* A minimal, uncluttered bar at the top for settings and status information (aligned along bottom baseline):
 * * Modes (dropdown): 1-octave, 2-octave
-* * Output (dropdown): List of available MIDI devices
+* * Output (dropdown): List of available MIDI devices (including virtual output)
 * * Channel (dropdown): 1-16
-* * Octave (slider): 0 to 6 (the default octave is 3, as in C3 is the lowest note on the piano roll)
-* * Velocity (slider): 1-127 (default: 100)
+* * One-Shot (checkbox): 50 ms trigger pulse mode without sustain (ideal for drum computers and samplers)
+* * Panic (button): All Notes Off
+* * Settings (button / ⌘,): Modal dialog for configuring profiles, note mappings, MIDI CC triggers, and dynamics
+* Left Control Strip:
+* * VEL (fader): Velocity slider (1–127) for fixed computer keyboard velocity
+* * PTCH (wheel): 14-bit Pitch Bend wheel (0...16383), spring-loaded to center (8192)
+* * MOD (wheel): Standard CC #1 Modulation wheel (0...127), friction-loaded
+* Octave Selector Bar:
+* * 7 rounded blocks positioned directly above the piano keys representing Octaves 0 to 6
+* * Clicking selects the octave; active octave is highlighted in accent blue
 * Piano Roll at the bottom. White and Black keys according to a regular piano layout
 * * In 1-octave mode, the piano roll shows one octave
-* * In 2-octave mode, the piano roll shows two octaves
-* * When a key is pressed, the corresponding key in the piano roll is highlighted
-* * When a key is released, the corresponding key in the piano roll is unhighlighted
-* * The highlight color should be light, faded color (if possible, pick the current OS's highlight color, otherwise yellow)
-* * The highlight color should be the same for all keys
-* * The highlight color should not be too bright, so it doesn't hurt the eyes when looking at the piano roll for a long time
-* * White keys (A, C, D, E, F, G, A, B) should be colored in `NSColor.systemGray` (macOS equivalent of `UIColor.systemGray3`) or appropriate light gray
-* * Black keys should be colored in `NSColor.darkGray` (macOS equivalent of `UIColor.systemGray`) or system dark gray
-* * No scroll is needed. In one-octave mode the entire octave must fit in the visible view, in 2-octave mode, the entire two octaves must fit in the visible view with an additional key for the next C note.
+* * In 2-octave mode, the piano roll shows two octaves + top C
+* * Key press highlights key; key release unhighlights key
+* * Vertical Mouse Position Velocity Scaling: Clicking/dragging with mouse scales velocity linearly (1 at top to 127 at bottom)
+* * White keys colored in system gray; black keys in system dark gray
+* * Tab key navigation: cycles strictly through the top bar controls; performance area below is exempt from Tab focus
+* * Clicking below top bar automatically clears keyboard focus from top bar controls
 
 ## Tech Stack
 
