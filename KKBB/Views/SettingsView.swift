@@ -601,6 +601,21 @@ struct SettingsView: View {
                 .cornerRadius(6)
             }
 
+            if !appState.activeProfile.customKeyChords.isEmpty {
+                HStack {
+                    Text("Piano Roll Key Chords: \(appState.activeProfile.customKeyChords.count) key(s) with custom chord assignments")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Clear All Key Chords") {
+                        appState.clearAllCustomKeyChords()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.mini)
+                }
+                .padding(.horizontal, 4)
+            }
+
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     ForEach(Array(appState.activeProfile.chordPads.enumerated()), id: \.element.id) { idx, pad in

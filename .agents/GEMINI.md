@@ -41,6 +41,9 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * White keys colored in system gray; black keys in system dark gray
 * * Tab key navigation: cycles strictly through the top bar controls; performance area below is exempt from Tab focus
 * * Clicking below top bar automatically clears keyboard focus from top bar controls
+* * Per-Key Chord Overrides: Right-clicking any individual white or black key on the piano roll opens a context menu to assign a specific chord/scale to that key (e.g. Min7 to C4)
+* * Precedence: Individual key chord assignments have precedence over the active Chord Pad selection (e.g. if Maj7 is selected on the chord pad, playing C4 triggers Min7 while all other keys trigger Maj7)
+* * Visual Feedback: Keys with custom chord assignments display a subtle info badge in faded gray at the top of their existing key labels (e.g. "m7")
 * Chord Pads Strip:
 * * 12 equally distributed performance boxes at the very bottom of the UI (directly below the piano roll)
 * * Configurable hot-keys (defaulting to F1–F12); editable via right-click context menu "Change Hot-Key…" sheet or Settings > Chord Pads tab

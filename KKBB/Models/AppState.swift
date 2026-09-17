@@ -85,8 +85,55 @@ public final class AppState {
             return nil
         }
         let pad = activeProfile.chordPads[idx]
-        let type = ChordType.find(by: pad.chordTypeID)
-        return type.id == "none" ? nil : type
+        return pad.chordTypeID == "none" ? nil : ChordType.find(by: pad.chordTypeID)
+    }
+
+    /// Resolves the effective chord for a given root note:
+    /// Key-specific assignments have strict precedence over the global Chord Pad voicing!
+    public func effectiveChord(for note: UInt8) -> ChordType? {
+        if let customID = activeProfile.customKeyChords[note], customID != "none" {
+            return ChordType.find(by: customID)
+        }
+        return activeChordType
+    }
+
+    /// Returns the transposed note array for a played root note.
+    public func notesForRoot(_ root: UInt8) -> [UInt8] {
+        if let chord = effectiveChord(for: root) {
+            return chord.intervals.compactMap { offset in
+                let final = Int(root) + offset
+                return (0...127).contains(final) ? UInt8(final) : nil
+            }
+        }
+        return [root]
+    }
+
+    public func assignChord(to note: UInt8, chordTypeID: String?) {
+        if let id = chordTypeID, id != "none" {
+            activeProfile.customKeyChords[note] = id
+        } else {
+            activeProfile.customKeyChords.removeValue(forKey: note)
+        }
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            saveDefaultCustomKeyChords()
+        }
+    }
+
+    public func clearAllCustomKeyChords() {
+        activeProfile.customKeyChords.removeAll()
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            defaults.removeObject(forKey: "kkbb.defaultCustomKeyChords")
+        }
+    }
+
+    private func saveDefaultCustomKeyChords() {
+        if let encoded = try? JSONEncoder().encode(activeProfile.customKeyChords) {
+            defaults.set(encoded, forKey: "kkbb.defaultCustomKeyChords")
+        }
     }
 
     public var activeProfile: KeyBindingProfile {
@@ -149,6 +196,10 @@ public final class AppState {
                let customKnobs = try? JSONDecoder().decode([KnobConfig].self, from: knobData) {
                 defaultProf.knobs = customKnobs
             }
+            if let chordData = defaults.data(forKey: "kkbb.defaultCustomKeyChords"),
+               let customChords = try? JSONDecoder().decode([UInt8: String].self, from: chordData) {
+                defaultProf.customKeyChords = customChords
+            }
             self.activeProfile = defaultProf
         }
 
@@ -194,7 +245,8 @@ public final class AppState {
             ccBindings: base.ccBindings,
             mouseVerticalVelocityEnabled: base.mouseVerticalVelocityEnabled,
             knobs: base.knobs,
-            chordPads: base.chordPads
+            chordPads: base.chordPads,
+            customKeyChords: base.customKeyChords
         )
         userProfiles.append(newProfile)
         selectProfile(newProfile)

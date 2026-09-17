@@ -219,6 +219,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public var mouseVerticalVelocityEnabled: Bool
     public var knobs: [KnobConfig]
     public var chordPads: [ChordPadConfig]
+    public var customKeyChords: [UInt8: String] // Mapping MIDI note number -> ChordType.id
 
     public var isDefault: Bool {
         return isReadOnly
@@ -233,7 +234,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         ccBindings: [CCKeyBinding] = [],
         mouseVerticalVelocityEnabled: Bool = true,
         knobs: [KnobConfig] = KnobConfig.defaultKnobs,
-        chordPads: [ChordPadConfig] = ChordPadConfig.defaultPads
+        chordPads: [ChordPadConfig] = ChordPadConfig.defaultPads,
+        customKeyChords: [UInt8: String] = [:]
     ) {
         self.id = id
         self.name = name
@@ -244,10 +246,11 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.mouseVerticalVelocityEnabled = mouseVerticalVelocityEnabled
         self.knobs = knobs
         self.chordPads = chordPads
+        self.customKeyChords = customKeyChords
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs, chordPads
+        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs, chordPads, customKeyChords
     }
 
     public init(from decoder: Decoder) throws {
@@ -261,6 +264,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.mouseVerticalVelocityEnabled = try container.decodeIfPresent(Bool.self, forKey: .mouseVerticalVelocityEnabled) ?? true
         self.knobs = try container.decodeIfPresent([KnobConfig].self, forKey: .knobs) ?? KnobConfig.defaultKnobs
         self.chordPads = try container.decodeIfPresent([ChordPadConfig].self, forKey: .chordPads) ?? ChordPadConfig.defaultPads
+        self.customKeyChords = try container.decodeIfPresent([UInt8: String].self, forKey: .customKeyChords) ?? [:]
     }
 
     public static let defaultProfile: KeyBindingProfile = {

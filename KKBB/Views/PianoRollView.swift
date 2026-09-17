@@ -50,6 +50,9 @@ struct PianoRollView: View {
                 HStack(spacing: 1) {
                     ForEach(whiteKeys) { key in
                         let isActive = appState.activeNotes.contains(key.noteNumber)
+                        let assignedChordID = appState.activeProfile.customKeyChords[key.noteNumber]
+                        let assignedChord = assignedChordID.flatMap { ChordType.find(by: $0) }
+
                         ZStack(alignment: .bottom) {
                             Rectangle()
                                 .fill(isActive ? highlightColor : whiteKeyFill)
@@ -59,6 +62,13 @@ struct PianoRollView: View {
                                 )
 
                             VStack(spacing: 2) {
+                                if let chord = assignedChord, chord.id != "none" {
+                                    Text(chord.shortName)
+                                        .font(.system(size: Swift.max(6.5, noteLabelSize * 0.85), weight: .bold))
+                                        .foregroundStyle(isActive ? Color.accentColor : Color.secondary.opacity(0.65))
+                                        .lineLimit(1)
+                                }
+
                                 if let shortcut = key.shortcut {
                                     Text(shortcut.uppercased())
                                         .font(.system(size: shortcutSize, weight: .bold, design: .monospaced))
@@ -71,6 +81,10 @@ struct PianoRollView: View {
                             .padding(.bottom, 8)
                         }
                         .frame(width: Swift.max(0, keyWidth - 1), height: keyHeight)
+                        .contentShape(Rectangle())
+                        .contextMenu {
+                            keyContextMenu(for: key)
+                        }
                     }
                 }
 
@@ -78,6 +92,8 @@ struct PianoRollView: View {
                 ForEach(blackKeys) { key in
                     let isActive = appState.activeNotes.contains(key.noteNumber)
                     let xOffset = calculateBlackKeyX(key: key, whiteWidth: keyWidth, blackWidth: blackWidth)
+                    let assignedChordID = appState.activeProfile.customKeyChords[key.noteNumber]
+                    let assignedChord = assignedChordID.flatMap { ChordType.find(by: $0) }
 
                     ZStack(alignment: .bottom) {
                         RoundedRectangle(cornerRadius: 3)
@@ -88,15 +104,28 @@ struct PianoRollView: View {
                             )
                             .shadow(color: .black.opacity(0.25), radius: 2, x: 1, y: 2)
 
-                        if let shortcut = key.shortcut {
-                            Text(shortcut.uppercased())
-                                .font(.system(size: Swift.max(7.5, shortcutSize * 0.9), weight: .bold, design: .monospaced))
-                                .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.9))
-                                .padding(.bottom, 6)
+                        VStack(spacing: 1.5) {
+                            if let chord = assignedChord, chord.id != "none" {
+                                Text(chord.shortName)
+                                    .font(.system(size: Swift.max(6.0, shortcutSize * 0.75), weight: .bold))
+                                    .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.55))
+                                    .lineLimit(1)
+                            }
+
+                            if let shortcut = key.shortcut {
+                                Text(shortcut.uppercased())
+                                    .font(.system(size: Swift.max(7.5, shortcutSize * 0.9), weight: .bold, design: .monospaced))
+                                    .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.9))
+                            }
                         }
+                        .padding(.bottom, 6)
                     }
                     .frame(width: blackWidth, height: blackHeight)
                     .offset(x: xOffset, y: 0)
+                    .contentShape(Rectangle())
+                    .contextMenu {
+                        keyContextMenu(for: key)
+                    }
                 }
             }
             .contentShape(Rectangle())
@@ -127,13 +156,7 @@ struct PianoRollView: View {
     }
 
     private func getChordNotes(root: UInt8) -> [UInt8] {
-        if let chordType = appState.activeChordType {
-            return chordType.intervals.compactMap { offset in
-                let final = Int(root) + offset
-                return (0...127).contains(final) ? UInt8(final) : nil
-            }
-        }
-        return [root]
+        appState.notesForRoot(root)
     }
 
     private func handleDrag(
@@ -145,6 +168,11 @@ struct PianoRollView: View {
         blackWidth: CGFloat,
         blackHeight: CGFloat
     ) {
+        // Ignore right clicks so context menus open cleanly without triggering notes
+        if (NSEvent.pressedMouseButtons & 2) != 0 {
+            return
+        }
+
         NSApp.keyWindow?.makeFirstResponder(nil)
         let hit = resolveKeyAt(
             point: point,
@@ -430,6 +458,64 @@ struct PianoRollView: View {
             }
         }
         return dict
+    }
+
+    @ViewBuilder
+    private func keyContextMenu(for key: KeyDescriptor) -> some View {
+        let assignedChordID = appState.activeProfile.customKeyChords[key.noteNumber]
+        let currentAssigned = assignedChordID != nil && assignedChordID != "none"
+
+        Text("Key: \(key.noteName)")
+            .font(.headline)
+
+        Divider()
+
+        Button(action: {
+            appState.assignChord(to: key.noteNumber, chordTypeID: nil)
+        }) {
+            if !currentAssigned {
+                Label("Inherit Chord Pad / Single Note", systemImage: "checkmark")
+            } else {
+                Text("Inherit Chord Pad / Single Note")
+            }
+        }
+
+        Divider()
+
+        Menu("Chords") {
+            ForEach(ChordType.allTypes.filter { $0.category == .chords && $0.id != "none" }) { type in
+                Button(action: {
+                    appState.assignChord(to: key.noteNumber, chordTypeID: type.id)
+                }) {
+                    if assignedChordID == type.id {
+                        Label(type.name, systemImage: "checkmark")
+                    } else {
+                        Text(type.name)
+                    }
+                }
+            }
+        }
+
+        Menu("Bitwig Scales & Modes") {
+            ForEach(ChordType.allTypes.filter { $0.category == .scales }) { type in
+                Button(action: {
+                    appState.assignChord(to: key.noteNumber, chordTypeID: type.id)
+                }) {
+                    if assignedChordID == type.id {
+                        Label(type.name, systemImage: "checkmark")
+                    } else {
+                        Text(type.name)
+                    }
+                }
+            }
+        }
+
+        if currentAssigned {
+            Divider()
+            Button("Clear Chord for \(key.noteName)") {
+                appState.assignChord(to: key.noteNumber, chordTypeID: nil)
+            }
+        }
     }
 }
 

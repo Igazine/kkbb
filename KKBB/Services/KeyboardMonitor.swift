@@ -206,15 +206,7 @@ public final class KeyboardMonitor {
                 return false
             }
 
-            let notesToPlay: [UInt8]
-            if let chordType = appState.activeChordType {
-                notesToPlay = chordType.intervals.compactMap { offset in
-                    let final = Int(rootNote) + offset
-                    return (0...127).contains(final) ? UInt8(final) : nil
-                }
-            } else {
-                notesToPlay = [rootNote]
-            }
+            let notesToPlay = appState.notesForRoot(rootNote)
 
             pressedKeyToNotes[event.keyCode] = notesToPlay
             let velocity = UInt8(appState.velocity)
