@@ -44,6 +44,7 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * Multiple piano keys can be pressed at once (as much as the current OS supports, probably 6 or 10 keys)
 * OS key repeat suppression: repeated `keyDown` events when keys are held down must be filtered to prevent re-triggering Note-On
 * CoreMIDI virtual source endpoint: KKBB publishes its own virtual MIDI source ("KKBB Virtual Output") so DAWs (Logic Pro, Ableton Live, Reaper, etc.) can directly detect and receive MIDI from KKBB without manual IAC driver configuration, while also allowing output to external MIDI destination endpoints
+* Intermediate abstract MIDI processing pipeline (`MIDIPipeline`, `MIDIProcessor`): decoupled layer between note generation (key press/release) and physical CoreMIDI send, designed to host future MIDI processors/effects (arpeggiators, chord harmonizers, MIDI echo/delay) without altering hardware output logic.
 * Absolutely no audio signal will be sent or received from and to KKBB. KKBB will only send MIDI data to other MIDI-capable apps or hardware. In other words: do not use any audio APIs,CoreAudio (it's allowed) or otherwise. Only CoreMIDI is allowed. No 3rd-party audio/MIDI engine will be used either (eg. VST, etc.)
 
 ## Key Bindings
