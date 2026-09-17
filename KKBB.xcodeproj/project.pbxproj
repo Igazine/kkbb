@@ -31,6 +31,7 @@
 		10000022 /* ChordPadsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000022 /* ChordPadsStripView.swift */; };
 		10000023 /* DrumPadConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000023 /* DrumPadConfig.swift */; };
 		10000024 /* DrumPadGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000024 /* DrumPadGridView.swift */; };
+		10000025 /* MIDICommandType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000025 /* MIDICommandType.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +60,7 @@
 		20000022 /* ChordPadsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordPadsStripView.swift; sourceTree = "<group>"; };
 		20000023 /* DrumPadConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadConfig.swift; sourceTree = "<group>"; };
 		20000024 /* DrumPadGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadGridView.swift; sourceTree = "<group>"; };
+		20000025 /* MIDICommandType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDICommandType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 				20000015 /* KeyBindingProfile.swift */,
 				20000021 /* ChordType.swift */,
 				20000023 /* DrumPadConfig.swift */,
+				20000025 /* MIDICommandType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -250,6 +253,7 @@
 				10000022 /* ChordPadsStripView.swift in Sources */,
 				10000023 /* DrumPadConfig.swift in Sources */,
 				10000024 /* DrumPadGridView.swift in Sources */,
+				10000025 /* MIDICommandType.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

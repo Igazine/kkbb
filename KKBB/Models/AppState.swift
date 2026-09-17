@@ -185,11 +185,22 @@ public final class AppState {
 
     public func triggerDrumPadOn(bank: Int, padIndex: Int, velocityOverride: UInt8? = nil) {
         guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else { return }
+        let padKey = "\(bank)_\(padIndex)"
+
+        // Handle MIDI Command (Transport / Panic)
+        if let cmd = config.midiCommand {
+            activeDrumPadKeys.insert(padKey)
+            MIDIManager.shared.sendCommand(cmd, channel: channel, destinationUID: selectedDestinationUID)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+                self?.activeDrumPadKeys.remove(padKey)
+            }
+            return
+        }
+
         let notes = config.notesToSend
         guard !notes.isEmpty else { return }
         let vel = velocityOverride ?? UInt8(velocity)
 
-        let padKey = "\(bank)_\(padIndex)"
         activeDrumPadKeys.insert(padKey)
 
         for note in notes {
@@ -214,6 +225,12 @@ public final class AppState {
             activeDrumPadKeys.remove(padKey)
             return
         }
+
+        if config.midiCommand != nil {
+            activeDrumPadKeys.remove(padKey)
+            return
+        }
+
         let notes = config.notesToSend
         activeDrumPadKeys.remove(padKey)
 

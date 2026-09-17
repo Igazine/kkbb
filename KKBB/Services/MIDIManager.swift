@@ -101,6 +101,15 @@ public final class MIDIManager {
         sendCC(controller: 120, value: 0, channel: channel, destinationUID: destinationUID)
     }
 
+    public func sendCommand(_ command: MIDICommandType, channel: Int, destinationUID: Int32?) {
+        switch command {
+        case .allNotesOff:
+            allNotesOff(channel: channel, destinationUID: destinationUID)
+        default:
+            sendRawBytes(command.rawBytes, destinationUID: destinationUID)
+        }
+    }
+
     public func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?) {
         let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
         let statusByte = 0xB0 | ch

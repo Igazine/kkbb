@@ -94,8 +94,14 @@ public struct DrumPadGridView: View {
 
                 Spacer(minLength: 1)
 
-                // Center: Note & Octave or Unassigned marker
-                if let label = config?.fullNoteLabel {
+                // Center: MIDI Command, Note & Octave, or Unassigned marker
+                if let cmd = config?.midiCommand {
+                    Text(cmd.padBadge)
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .foregroundStyle(isActive ? Color.white : Color.primary)
+                        .minimumScaleFactor(0.65)
+                        .lineLimit(1)
+                } else if let label = config?.fullNoteLabel {
                     Text(label)
                         .font(.system(size: 17, weight: .heavy, design: .rounded))
                         .foregroundStyle(isActive ? Color.white : Color.primary)
@@ -109,8 +115,20 @@ public struct DrumPadGridView: View {
 
                 Spacer(minLength: 1)
 
-                // Bottom: Chord badge if assigned
-                if let chord = config?.chordType {
+                // Bottom: Command category badge or Chord badge if assigned
+                if let cmd = config?.midiCommand {
+                    Text(cmd.category == .realTime ? "REALTIME" : (cmd.category == .mmc ? "MMC" : "SYS"))
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(isActive ? Color.white.opacity(0.25) : Color.secondary.opacity(0.12))
+                        )
+                        .foregroundStyle(isActive ? Color.white.opacity(0.9) : Color.secondary.opacity(0.7))
+                        .lineLimit(1)
+                        .padding(.bottom, 3)
+                } else if let chord = config?.chordType {
                     Text(chord.shortName)
                         .font(.system(size: 9, weight: .bold, design: .rounded))
                         .padding(.horizontal, 4)
@@ -187,9 +205,10 @@ public struct DrumPadGridView: View {
         Menu("Root Note") {
             ForEach(0..<DrumPadConfig.noteNames.count, id: \.self) { semitone in
                 let noteName = DrumPadConfig.noteNames[semitone]
-                let isCurrent = config?.semitone == UInt8(semitone)
+                let isCurrent = config?.semitone == UInt8(semitone) && config?.midiCommand == nil
                 Button {
                     var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                    current.midiCommand = nil
                     current.semitone = UInt8(semitone)
                     if current.octave == nil { current.octave = 3 }
                     appState.updateDrumPadConfig(current)
@@ -206,9 +225,10 @@ public struct DrumPadGridView: View {
         // Octave Submenu (0 to 6)
         Menu("Octave") {
             ForEach(0...6, id: \.self) { oct in
-                let isCurrent = config?.octave == oct
+                let isCurrent = config?.octave == oct && config?.midiCommand == nil
                 Button {
                     var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                    current.midiCommand = nil
                     current.octave = oct
                     if current.semitone == nil { current.semitone = 0 }
                     appState.updateDrumPadConfig(current)
@@ -234,7 +254,7 @@ public struct DrumPadGridView: View {
                     appState.updateDrumPadConfig(current)
                 }
             } label: {
-                if activeChordID == "none" || activeChordID.isEmpty {
+                if (activeChordID == "none" || activeChordID.isEmpty) && config?.midiCommand == nil {
                     Label("No Chord (Single Note)", systemImage: "checkmark")
                 } else {
                     Text("No Chord (Single Note)")
@@ -243,9 +263,10 @@ public struct DrumPadGridView: View {
 
             Menu("Chords") {
                 ForEach(ChordType.allTypes.filter { $0.category == .chords && $0.id != "none" }) { chord in
-                    let isSel = activeChordID == chord.id
+                    let isSel = activeChordID == chord.id && config?.midiCommand == nil
                     Button {
                         var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                        current.midiCommand = nil
                         if current.semitone == nil { current.semitone = 0 }
                         if current.octave == nil { current.octave = 3 }
                         current.chordTypeID = chord.id
@@ -262,9 +283,10 @@ public struct DrumPadGridView: View {
 
             Menu("Bitwig Scales & Modes") {
                 ForEach(ChordType.allTypes.filter { $0.category == .scales }) { scale in
-                    let isSel = activeChordID == scale.id
+                    let isSel = activeChordID == scale.id && config?.midiCommand == nil
                     Button {
                         var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                        current.midiCommand = nil
                         if current.semitone == nil { current.semitone = 0 }
                         if current.octave == nil { current.octave = 3 }
                         current.chordTypeID = scale.id
@@ -274,6 +296,50 @@ public struct DrumPadGridView: View {
                             Label(scale.name, systemImage: "checkmark")
                         } else {
                             Text(scale.name)
+                        }
+                    }
+                }
+            }
+        }
+
+        Divider()
+
+        // MIDI Command Submenu
+        Menu("MIDI Command") {
+            let activeCmd = config?.midiCommand
+
+            Button {
+                if var current = config {
+                    current.midiCommand = nil
+                    appState.updateDrumPadConfig(current)
+                }
+            } label: {
+                if activeCmd == nil {
+                    Label("None (Note / Chord Mode)", systemImage: "checkmark")
+                } else {
+                    Text("None (Note / Chord Mode)")
+                }
+            }
+
+            Divider()
+
+            ForEach(MIDICommandCategory.allCases) { cat in
+                Menu(cat.rawValue) {
+                    ForEach(MIDICommandType.allCases.filter { $0.category == cat }) { cmd in
+                        let isSel = activeCmd == cmd
+                        Button {
+                            var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                            current.midiCommand = cmd
+                            current.semitone = nil
+                            current.octave = nil
+                            current.chordTypeID = nil
+                            appState.updateDrumPadConfig(current)
+                        } label: {
+                            if isSel {
+                                Label(cmd.displayName, systemImage: "checkmark")
+                            } else {
+                                Text(cmd.displayName)
+                            }
                         }
                     }
                 }

@@ -11,6 +11,7 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
     public var semitone: UInt8? // 0...11 (C...B)
     public var octave: Int? // 0...6
     public var chordTypeID: String? // nil or "none" or ChordType.id
+    public var midiCommand: MIDICommandType? // Optional transport or panic command
 
     public static let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
@@ -23,7 +24,8 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
         keyTrigger: String? = nil,
         semitone: UInt8? = nil,
         octave: Int? = nil,
-        chordTypeID: String? = nil
+        chordTypeID: String? = nil,
+        midiCommand: MIDICommandType? = nil
     ) {
         self.id = id
         self.bank = bank
@@ -34,10 +36,11 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
         self.semitone = semitone
         self.octave = octave
         self.chordTypeID = chordTypeID
+        self.midiCommand = midiCommand
     }
 
     public var isAssigned: Bool {
-        return semitone != nil && octave != nil
+        return (semitone != nil && octave != nil) || midiCommand != nil
     }
 
     public var midiNote: UInt8? {
