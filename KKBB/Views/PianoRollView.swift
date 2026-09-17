@@ -37,8 +37,8 @@ struct PianoRollView: View {
             let keyHeight = geometry.size.height
             let blackWidth = keyWidth * 0.62
             let blackHeight = keyHeight * 0.62
-            let shortcutSize = Swift.max(8.0, Swift.min(16.0, keyWidth * 0.22 * CGFloat(Swift.min(2.0, appState.zoom))))
-            let noteLabelSize = Swift.max(7.0, Swift.min(12.0, keyWidth * 0.18 * CGFloat(Swift.min(2.0, appState.zoom))))
+            let shortcutSize = Swift.max(8.0, Swift.min(16.0, keyWidth * 0.22))
+            let noteLabelSize = Swift.max(7.0, Swift.min(12.0, keyWidth * 0.18))
 
             ZStack(alignment: .topLeading) {
                 // Background

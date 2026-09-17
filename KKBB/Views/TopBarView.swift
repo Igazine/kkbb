@@ -95,24 +95,6 @@ struct TopBarView: View {
                     .frame(width: 90)
                 }
 
-                // Zoom Slider
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text("Zoom")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text(String(format: "%.2fx", appState.zoom))
-                            .font(.caption2.monospacedDigit().bold())
-                    }
-                    Slider(
-                        value: $appState.zoom,
-                        in: 0.5...4.0,
-                        step: 0.25
-                    )
-                    .frame(width: 90)
-                }
-
                 Spacer()
 
                 // Panic Button

@@ -10,7 +10,7 @@ struct ContentView: View {
             Divider()
 
             PianoRollView(appState: appState)
-                .frame(minHeight: 120 * appState.zoom, maxHeight: .infinity)
+                .frame(minHeight: 120, maxHeight: .infinity)
         }
         .frame(minWidth: 700, minHeight: 220)
         .onAppear {

@@ -18,7 +18,6 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Channel (dropdown): 1-16
 * * Octave (slider): 0 to 6 (the default octave is 3, as in C3 is the lowest note on the piano roll)
 * * Velocity (slider): 1-127 (default: 100)
-* * Zoom (slider): 0.5 to 4.0 in 0.25 increments (the default is 1.0)
 * Piano Roll at the bottom. White and Black keys according to a regular piano layout
 * * In 1-octave mode, the piano roll shows one octave
 * * In 2-octave mode, the piano roll shows two octaves

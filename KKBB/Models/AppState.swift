@@ -52,13 +52,6 @@ public final class AppState {
         }
     }
 
-    public var zoom: Double {
-        didSet {
-            let rounded = (zoom * 4.0).rounded() / 4.0
-            defaults.set(rounded, forKey: "kkbb.zoom")
-        }
-    }
-
     public var activeNotes: Set<UInt8> = []
     public var availableDestinations: [MIDIEndpointInfo] = []
 
@@ -84,8 +77,5 @@ public final class AppState {
 
         let savedVelocity = defaults.integer(forKey: "kkbb.velocity")
         self.velocity = (1...127).contains(savedVelocity) ? savedVelocity : 100
-
-        let savedZoom = defaults.double(forKey: "kkbb.zoom")
-        self.zoom = (savedZoom >= 0.5 && savedZoom <= 4.0) ? savedZoom : 1.0
     }
 }
