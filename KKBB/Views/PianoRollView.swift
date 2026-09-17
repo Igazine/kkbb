@@ -13,17 +13,18 @@ struct KeyDescriptor: Identifiable {
 
 struct PianoRollView: View {
     @Bindable var appState: AppState
+    @State private var mouseHeldNote: UInt8?
 
-    // System highlight color or subtle warm highlight
+    // System highlight color, soft and non-fatiguing
     private var highlightColor: Color {
-        Color(nsColor: .selectedControlColor).opacity(0.75)
+        Color(nsColor: .controlAccentColor).opacity(0.60)
     }
 
-    private var whiteKeyColor: Color {
-        Color(nsColor: .systemGray).opacity(0.25)
+    private var whiteKeyFill: Color {
+        Color(nsColor: .systemGray).opacity(0.30)
     }
 
-    private var blackKeyColor: Color {
+    private var blackKeyFill: Color {
         Color(nsColor: .darkGray)
     }
 
@@ -31,10 +32,10 @@ struct PianoRollView: View {
         GeometryReader { geometry in
             let baseNote = UInt8((appState.octave + 1) * 12)
             let (whiteKeys, blackKeys) = generateKeys(baseNote: baseNote, mode: appState.mode)
-            let whiteCount = max(1, whiteKeys.count)
+            let whiteCount = Swift.max(1, whiteKeys.count)
             let keyWidth = geometry.size.width / CGFloat(whiteCount)
             let keyHeight = geometry.size.height
-            let blackWidth = keyWidth * 0.64
+            let blackWidth = keyWidth * 0.62
             let blackHeight = keyHeight * 0.62
 
             ZStack(alignment: .topLeading) {
@@ -47,8 +48,11 @@ struct PianoRollView: View {
                         let isActive = appState.activeNotes.contains(key.noteNumber)
                         ZStack(alignment: .bottom) {
                             Rectangle()
-                                .fill(isActive ? highlightColor : whiteKeyColor)
-                                .border(Color.black.opacity(0.3), width: 0.5)
+                                .fill(isActive ? highlightColor : whiteKeyFill)
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(Color.black.opacity(0.25), lineWidth: 0.5)
+                                )
 
                             VStack(spacing: 2) {
                                 if let shortcut = key.shortcut {
@@ -58,21 +62,11 @@ struct PianoRollView: View {
                                 }
                                 Text(key.noteName)
                                     .font(.system(size: 9, weight: .medium))
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(.secondary)
                             }
-                            .padding(.bottom, 6)
+                            .padding(.bottom, 8)
                         }
-                        .frame(width: max(0, keyWidth - 1), height: keyHeight)
-                        .contentShape(Rectangle())
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { _ in
-                                    triggerNoteOn(key.noteNumber)
-                                }
-                                .onEnded { _ in
-                                    triggerNoteOff(key.noteNumber)
-                                }
-                        )
+                        .frame(width: Swift.max(0, keyWidth - 1), height: keyHeight)
                     }
                 }
 
@@ -83,35 +77,106 @@ struct PianoRollView: View {
 
                     ZStack(alignment: .bottom) {
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(isActive ? highlightColor : blackKeyColor)
+                            .fill(isActive ? highlightColor : blackKeyFill)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 3)
-                                    .stroke(Color.black.opacity(0.5), lineWidth: 0.5)
+                                    .stroke(Color.black.opacity(0.6), lineWidth: 0.5)
                             )
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 2)
+                            .shadow(color: .black.opacity(0.25), radius: 2, x: 1, y: 2)
 
                         if let shortcut = key.shortcut {
                             Text(shortcut.uppercased())
                                 .font(.system(size: 10, weight: .bold, design: .monospaced))
-                                .foregroundStyle(isActive ? .black : .white.opacity(0.85))
+                                .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.9))
                                 .padding(.bottom, 6)
                         }
                     }
                     .frame(width: blackWidth, height: blackHeight)
                     .offset(x: xOffset, y: 0)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { _ in
-                                triggerNoteOn(key.noteNumber)
-                            }
-                            .onEnded { _ in
-                                triggerNoteOff(key.noteNumber)
-                            }
-                    )
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        handleDrag(
+                            at: value.location,
+                            whiteKeys: whiteKeys,
+                            blackKeys: blackKeys,
+                            keyWidth: keyWidth,
+                            keyHeight: keyHeight,
+                            blackWidth: blackWidth,
+                            blackHeight: blackHeight
+                        )
+                    }
+                    .onEnded { _ in
+                        if let held = mouseHeldNote {
+                            triggerNoteOff(held)
+                            mouseHeldNote = nil
+                        }
+                    }
+            )
+        }
+    }
+
+    private func handleDrag(
+        at point: CGPoint,
+        whiteKeys: [KeyDescriptor],
+        blackKeys: [KeyDescriptor],
+        keyWidth: CGFloat,
+        keyHeight: CGFloat,
+        blackWidth: CGFloat,
+        blackHeight: CGFloat
+    ) {
+        let hitNote = resolveKeyAt(
+            point: point,
+            whiteKeys: whiteKeys,
+            blackKeys: blackKeys,
+            keyWidth: keyWidth,
+            keyHeight: keyHeight,
+            blackWidth: blackWidth,
+            blackHeight: blackHeight
+        )
+
+        if hitNote != mouseHeldNote {
+            if let old = mouseHeldNote {
+                triggerNoteOff(old)
+            }
+            mouseHeldNote = hitNote
+            if let note = hitNote {
+                triggerNoteOn(note)
+            }
+        }
+    }
+
+    private func resolveKeyAt(
+        point: CGPoint,
+        whiteKeys: [KeyDescriptor],
+        blackKeys: [KeyDescriptor],
+        keyWidth: CGFloat,
+        keyHeight: CGFloat,
+        blackWidth: CGFloat,
+        blackHeight: CGFloat
+    ) -> UInt8? {
+        guard point.y >= 0, point.y <= keyHeight else { return nil }
+
+        // Check black keys first if within black key height
+        if point.y <= blackHeight {
+            for key in blackKeys {
+                let xOffset = calculateBlackKeyX(key: key, whiteWidth: keyWidth, blackWidth: blackWidth)
+                if point.x >= xOffset && point.x <= (xOffset + blackWidth) {
+                    return key.noteNumber
                 }
             }
         }
+
+        // Check white keys
+        let whiteIndex = Int(point.x / keyWidth)
+        if whiteIndex >= 0 && whiteIndex < whiteKeys.count {
+            return whiteKeys[whiteIndex].noteNumber
+        }
+
+        return nil
     }
 
     private func triggerNoteOn(_ note: UInt8) {

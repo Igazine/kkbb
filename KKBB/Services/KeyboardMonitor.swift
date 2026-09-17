@@ -15,6 +15,15 @@ public final class KeyboardMonitor {
         self.appState = appState
         guard localMonitor == nil else { return }
 
+        // Release hanging notes when window or app loses focus
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.didResignActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.allNotesOff()
+        }
+
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
             guard let self = self else { return event }
             if self.handleEvent(event) {
@@ -29,30 +38,36 @@ public final class KeyboardMonitor {
             NSEvent.removeMonitor(monitor)
             localMonitor = nil
         }
+        NotificationCenter.default.removeObserver(self, name: NSApplication.didResignActiveNotification, object: nil)
         allNotesOff()
     }
 
     private func handleEvent(_ event: NSEvent) -> Bool {
         guard let appState = appState else { return false }
 
+        // Let system commands (Cmd+Q, Cmd+W, Cmd+H, etc.) pass through normally
+        if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.control) {
+            return false
+        }
+
         if event.type == .keyDown {
-            // Check for octave shifts first (* and /)
-            if let chars = event.charactersIgnoringModifiers {
-                if chars == "*" {
-                    DispatchQueue.main.async {
-                        if appState.octave < 6 {
-                            appState.octave += 1
-                        }
+            // Check for octave shifts (* and /)
+            let directChar = event.characters
+            let rawChar = event.charactersIgnoringModifiers
+            if directChar == "*" || rawChar == "*" {
+                DispatchQueue.main.async {
+                    if appState.octave < 6 {
+                        appState.octave += 1
                     }
-                    return true
-                } else if chars == "/" {
-                    DispatchQueue.main.async {
-                        if appState.octave > 0 {
-                            appState.octave -= 1
-                        }
-                    }
-                    return true
                 }
+                return true
+            } else if directChar == "/" || rawChar == "/" {
+                DispatchQueue.main.async {
+                    if appState.octave > 0 {
+                        appState.octave -= 1
+                    }
+                }
+                return true
             }
 
             // Suppress OS key repeat

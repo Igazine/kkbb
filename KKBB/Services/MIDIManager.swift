@@ -42,7 +42,13 @@ public final class MIDIManager {
         }
 
         status = MIDISourceCreate(clientRef, "KKBB Virtual Output" as CFString, &virtualSourceRef)
-        if status != noErr {
+        if status == noErr {
+            let name = "KKBB Virtual Output" as CFString
+            let manufacturer = "Digigun" as CFString
+            MIDIObjectSetStringProperty(virtualSourceRef, kMIDIPropertyName, name)
+            MIDIObjectSetStringProperty(virtualSourceRef, kMIDIPropertyDisplayName, name)
+            MIDIObjectSetStringProperty(virtualSourceRef, kMIDIPropertyManufacturer, manufacturer)
+        } else {
             print("Failed to create Virtual MIDI Source: \(status)")
         }
     }
@@ -91,19 +97,21 @@ public final class MIDIManager {
     public func allNotesOff(channel: Int, destinationUID: Int32?) {
         // Control Change 123 (All Notes Off)
         sendCC(controller: 123, value: 0, channel: channel, destinationUID: destinationUID)
+        // Control Change 120 (All Sound Off)
+        sendCC(controller: 120, value: 0, channel: channel, destinationUID: destinationUID)
     }
 
     private func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?) {
-        let ch = UInt8(max(0, min(15, channel - 1)))
+        let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
         let statusByte = 0xB0 | ch
         sendRawBytes([statusByte, controller, value], destinationUID: destinationUID)
     }
 
     private func sendMIDIMessage(status: UInt8, note: UInt8, velocity: UInt8, channel: Int, destinationUID: Int32?) {
-        let clampedChannel = UInt8(max(0, min(15, channel - 1)))
+        let clampedChannel = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
         let statusByte = status | clampedChannel
-        let clampedNote = min(note, 127)
-        let clampedVelocity = min(velocity, 127)
+        let clampedNote = Swift.min(note, 127)
+        let clampedVelocity = Swift.min(velocity, 127)
 
         sendRawBytes([statusByte, clampedNote, clampedVelocity], destinationUID: destinationUID)
     }
@@ -111,25 +119,29 @@ public final class MIDIManager {
     private func sendRawBytes(_ bytes: [UInt8], destinationUID: Int32?) {
         guard !bytes.isEmpty else { return }
 
-        // Build MIDIPacketList
-        var packetList = MIDIPacketList()
-        var curPacket = MIDIPacketListInit(&packetList)
-        curPacket = MIDIPacketListAdd(&packetList, 1024, curPacket, 0, bytes.count, bytes)
+        let bufferSize = 256
+        var packetBuffer = [UInt8](repeating: 0, count: bufferSize)
 
-        // 1. Emit through Virtual Source
-        if virtualSourceRef != 0 {
-            MIDIReceived(virtualSourceRef, &packetList)
-        }
+        packetBuffer.withUnsafeMutableBytes { rawBuffer in
+            guard let packetListPtr = rawBuffer.baseAddress?.assumingMemoryBound(to: MIDIPacketList.self) else { return }
+            let curPacket = MIDIPacketListInit(packetListPtr)
+            _ = MIDIPacketListAdd(packetListPtr, bufferSize, curPacket, 0, bytes.count, bytes)
 
-        // 2. Emit to selected destination endpoint if set
-        if let destinationUID, outputPortRef != 0 {
-            let count = MIDIGetNumberOfDestinations()
-            for i in 0..<count {
-                let endpoint = MIDIGetDestination(i)
-                var uid: Int32 = 0
-                if MIDIObjectGetIntegerProperty(endpoint, kMIDIPropertyUniqueID, &uid) == noErr, uid == destinationUID {
-                    MIDISend(outputPortRef, endpoint, &packetList)
-                    break
+            // 1. Emit through Virtual Source
+            if virtualSourceRef != 0 {
+                MIDIReceived(virtualSourceRef, packetListPtr)
+            }
+
+            // 2. Emit to selected destination endpoint if set
+            if let destinationUID, outputPortRef != 0 {
+                let count = MIDIGetNumberOfDestinations()
+                for i in 0..<count {
+                    let endpoint = MIDIGetDestination(i)
+                    var uid: Int32 = 0
+                    if MIDIObjectGetIntegerProperty(endpoint, kMIDIPropertyUniqueID, &uid) == noErr, uid == destinationUID {
+                        MIDISend(outputPortRef, endpoint, packetListPtr)
+                        break
+                    }
                 }
             }
         }
