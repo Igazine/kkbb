@@ -29,9 +29,11 @@ struct KnobsStripView: View {
                 }
             }
         }
+        .frame(height: 54)
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.45))
+        .clipped()
         .focusable(false)
     }
 }

@@ -27,10 +27,12 @@ struct ContentView: View {
 
                     if appState.mode == .drumGrid {
                         DrumPadGridView(appState: appState)
-                            .frame(minHeight: 160, maxHeight: .infinity)
+                            .frame(minHeight: 180, maxHeight: .infinity)
+                            .clipped()
                     } else {
                         PianoRollView(appState: appState)
                             .frame(minHeight: 120, maxHeight: .infinity)
+                            .clipped()
 
                         Divider()
 
@@ -45,7 +47,7 @@ struct ContentView: View {
                 }
             )
         }
-        .frame(minWidth: 720, minHeight: 330)
+        .frame(minWidth: 720, minHeight: appState.mode == .drumGrid ? 390 : 330)
         .sheet(isPresented: $showSettings) {
             SettingsView(appState: appState)
         }

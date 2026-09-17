@@ -10,7 +10,7 @@ struct KKBBApp: App {
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unifiedCompact)
-        .defaultSize(width: 820, height: 260)
+        .defaultSize(width: 820, height: 420)
         .commands {
             CommandGroup(after: .windowArrangement) {
                 Toggle("Always on Top", isOn: Binding(

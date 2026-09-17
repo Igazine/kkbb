@@ -26,17 +26,18 @@ public struct DrumPadGridView: View {
     ]
 
     public var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 5) {
             ForEach(0..<padRows.count, id: \.self) { rowIdx in
-                HStack(spacing: 6) {
+                HStack(spacing: 5) {
                     ForEach(padRows[rowIdx], id: \.self) { padIndex in
                         drumPadCell(padIndex: padIndex)
                     }
                 }
             }
         }
-        .padding(8)
+        .padding(6)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.5))
+        .clipped()
         .sheet(isPresented: $showKeyRecorder) {
             keyRecorderSheet
         }
@@ -51,14 +52,14 @@ public struct DrumPadGridView: View {
         let isAssigned = config?.isAssigned == true
 
         ZStack {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 7)
                 .fill(
                     isActive
                         ? Color.accentColor
                         : (isAssigned ? Color(nsColor: .controlBackgroundColor).opacity(0.85) : Color(nsColor: .controlBackgroundColor).opacity(0.35))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 7)
                         .stroke(
                             isActive
                                 ? Color.white.opacity(0.6)
@@ -67,67 +68,68 @@ public struct DrumPadGridView: View {
                         )
                 )
 
-            VStack(spacing: 2) {
+            VStack(spacing: 1) {
                 // Top Header: Pad Number & Hot-Key
-                HStack(alignment: .top) {
+                HStack(alignment: .center) {
                     Text("\(padIndex + 1)")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .font(.system(size: 8.5, weight: .bold, design: .monospaced))
                         .foregroundStyle(isActive ? Color.white.opacity(0.9) : Color.secondary.opacity(0.6))
 
                     Spacer()
 
                     if let keyTrigger = config?.keyTrigger, !keyTrigger.isEmpty {
                         Text(keyTrigger.uppercased())
-                            .font(.system(size: 9, weight: .heavy, design: .monospaced))
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1.5)
+                            .font(.system(size: 8.5, weight: .heavy, design: .monospaced))
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
                             .background(
-                                RoundedRectangle(cornerRadius: 4)
+                                RoundedRectangle(cornerRadius: 3)
                                     .fill(isActive ? Color.white.opacity(0.25) : Color.accentColor.opacity(0.2))
                             )
                             .foregroundStyle(isActive ? Color.white : Color.accentColor)
                     }
                 }
-                .padding(.horizontal, 6)
-                .padding(.top, 5)
+                .padding(.horizontal, 5)
+                .padding(.top, 4)
 
-                Spacer()
+                Spacer(minLength: 1)
 
                 // Center: Note & Octave or Unassigned marker
                 if let label = config?.fullNoteLabel {
                     Text(label)
-                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .font(.system(size: 17, weight: .heavy, design: .rounded))
                         .foregroundStyle(isActive ? Color.white : Color.primary)
-                        .minimumScaleFactor(0.8)
+                        .minimumScaleFactor(0.75)
                         .lineLimit(1)
                 } else {
                     Text("—")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.secondary.opacity(0.35))
                 }
+
+                Spacer(minLength: 1)
 
                 // Bottom: Chord badge if assigned
                 if let chord = config?.chordType {
                     Text(chord.shortName)
-                        .font(.system(size: 9.5, weight: .bold, design: .rounded))
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1.5)
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
                         .background(
                             RoundedRectangle(cornerRadius: 3)
                                 .fill(isActive ? Color.white.opacity(0.2) : Color.secondary.opacity(0.15))
                         )
                         .foregroundStyle(isActive ? Color.white : Color.secondary)
                         .lineLimit(1)
+                        .padding(.bottom, 3)
                 } else {
-                    // Spacer to balance layout
-                    Text(" ")
-                        .font(.system(size: 9.5))
+                    Spacer(minLength: 0)
+                        .frame(height: 4)
                 }
-
-                Spacer()
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 40, minHeight: 38, maxHeight: .infinity)
+        .clipped()
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 0)

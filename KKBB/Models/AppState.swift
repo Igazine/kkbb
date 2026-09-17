@@ -24,6 +24,18 @@ public final class AppState {
             defaults.set(mode.rawValue, forKey: "kkbb.mode")
             KeyboardMonitor.shared.allNotesOff()
             activeDrumPadKeys.removeAll()
+            if mode == .drumGrid {
+                DispatchQueue.main.async {
+                    if let window = NSApp.keyWindow ?? NSApp.windows.first(where: { !$0.isSheet }),
+                       window.frame.height < 400 {
+                        var frame = window.frame
+                        let diff = 400 - frame.height
+                        frame.origin.y -= diff
+                        frame.size.height = 400
+                        window.setFrame(frame, display: true, animate: true)
+                    }
+                }
+            }
         }
     }
 
