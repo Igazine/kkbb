@@ -286,6 +286,7 @@ public final class KeyboardMonitor {
             }
 
             DispatchQueue.main.async {
+                appState.pressedRootNotes.insert(rootNote)
                 for n in notesToPlay {
                     appState.activeNotes.insert(n)
                 }
@@ -298,6 +299,7 @@ public final class KeyboardMonitor {
                         self.pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
                         appState.activeNotes.remove(n)
                     }
+                    appState.pressedRootNotes.remove(rootNote)
                 }
             }
             return true
@@ -358,9 +360,13 @@ public final class KeyboardMonitor {
                     pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
                 }
 
+                let releasedRoot = resolveNote(for: event, mode: appState.mode, octave: appState.octave, profile: appState.activeProfile)
                 DispatchQueue.main.async {
                     for n in notes {
                         appState.activeNotes.remove(n)
+                    }
+                    if let root = releasedRoot {
+                        appState.pressedRootNotes.remove(root)
                     }
                 }
             }
@@ -383,6 +389,7 @@ public final class KeyboardMonitor {
         pipeline.allNotesOff(channel: appState.channel, destinationUID: appState.selectedDestinationUID)
         DispatchQueue.main.async {
             appState.activeNotes.removeAll()
+            appState.pressedRootNotes.removeAll()
             appState.activeDrumPadKeys.removeAll()
         }
     }

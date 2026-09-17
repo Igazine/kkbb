@@ -19,7 +19,11 @@ struct PianoRollView: View {
 
     // System highlight color, soft and non-fatiguing
     private var highlightColor: Color {
-        Color(nsColor: .controlAccentColor).opacity(0.60)
+        Color(nsColor: .controlAccentColor).opacity(0.80)
+    }
+
+    private var chordExtensionColor: Color {
+        Color(nsColor: .controlAccentColor).opacity(0.32)
     }
 
     private var whiteKeyFill: Color {
@@ -50,12 +54,18 @@ struct PianoRollView: View {
                 HStack(spacing: 1) {
                     ForEach(whiteKeys) { key in
                         let isActive = appState.activeNotes.contains(key.noteNumber)
+                        let isRoot = appState.pressedRootNotes.contains(key.noteNumber)
                         let assignedChordID = appState.activeProfile.customKeyChords[key.noteNumber]
                         let assignedChord = assignedChordID.flatMap { ChordType.find(by: $0) }
+                        let isChordActive = appState.activeNotes.count > appState.pressedRootNotes.count || appState.activeChordPadIndex != nil || (assignedChord != nil && assignedChord?.id != "none")
 
                         ZStack(alignment: .bottom) {
                             Rectangle()
-                                .fill(isActive ? highlightColor : whiteKeyFill)
+                                .fill(
+                                    isActive
+                                        ? (isChordActive ? (isRoot ? highlightColor : chordExtensionColor) : highlightColor)
+                                        : whiteKeyFill
+                                )
                                 .overlay(
                                     Rectangle()
                                         .stroke(Color.black.opacity(0.25), lineWidth: 0.5)
@@ -65,20 +75,29 @@ struct PianoRollView: View {
                                 if let chord = assignedChord, chord.id != "none" {
                                     Text(chord.shortName)
                                         .font(.system(size: Swift.max(6.5, noteLabelSize * 0.85), weight: .bold))
-                                        .foregroundStyle(isActive ? Color.accentColor : Color.secondary.opacity(0.65))
+                                        .foregroundStyle(isActive ? (isRoot ? Color.white : Color.accentColor) : Color.secondary.opacity(0.65))
                                         .lineLimit(1)
                                 }
 
                                 if let shortcut = key.shortcut {
                                     Text(shortcut.uppercased())
                                         .font(.system(size: shortcutSize, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(isActive ? .primary : .secondary)
+                                        .foregroundStyle(isActive ? (isRoot ? .white : .primary) : .secondary)
                                 }
                                 Text(key.noteName)
                                     .font(.system(size: noteLabelSize, weight: .medium))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(isActive && isRoot ? Color.white.opacity(0.8) : .secondary)
                             }
                             .padding(.bottom, 8)
+                            .overlay(alignment: .top) {
+                                if isRoot && isChordActive {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 5.5, height: 5.5)
+                                        .shadow(color: .black.opacity(0.4), radius: 1, y: 0.5)
+                                        .offset(y: -7)
+                                }
+                            }
                         }
                         .frame(width: Swift.max(0, keyWidth - 1), height: keyHeight)
                         .contentShape(Rectangle())
@@ -91,13 +110,19 @@ struct PianoRollView: View {
                 // Black Keys Layer
                 ForEach(blackKeys) { key in
                     let isActive = appState.activeNotes.contains(key.noteNumber)
+                    let isRoot = appState.pressedRootNotes.contains(key.noteNumber)
                     let xOffset = calculateBlackKeyX(key: key, whiteWidth: keyWidth, blackWidth: blackWidth)
                     let assignedChordID = appState.activeProfile.customKeyChords[key.noteNumber]
                     let assignedChord = assignedChordID.flatMap { ChordType.find(by: $0) }
+                    let isChordActive = appState.activeNotes.count > appState.pressedRootNotes.count || appState.activeChordPadIndex != nil || (assignedChord != nil && assignedChord?.id != "none")
 
                     ZStack(alignment: .bottom) {
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(isActive ? highlightColor : blackKeyFill)
+                            .fill(
+                                isActive
+                                    ? (isChordActive ? (isRoot ? highlightColor : chordExtensionColor) : highlightColor)
+                                    : blackKeyFill
+                            )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 3)
                                     .stroke(Color.black.opacity(0.6), lineWidth: 0.5)
@@ -108,17 +133,26 @@ struct PianoRollView: View {
                             if let chord = assignedChord, chord.id != "none" {
                                 Text(chord.shortName)
                                     .font(.system(size: Swift.max(6.0, shortcutSize * 0.75), weight: .bold))
-                                    .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.55))
+                                    .foregroundStyle(isActive ? (isRoot ? Color.white : Color.white.opacity(0.85)) : Color.white.opacity(0.55))
                                     .lineLimit(1)
                             }
 
                             if let shortcut = key.shortcut {
                                 Text(shortcut.uppercased())
                                     .font(.system(size: Swift.max(7.5, shortcutSize * 0.9), weight: .bold, design: .monospaced))
-                                    .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.9))
+                                    .foregroundStyle(isActive ? (isRoot ? Color.white : Color.white.opacity(0.9)) : Color.white.opacity(0.9))
                             }
                         }
                         .padding(.bottom, 6)
+                        .overlay(alignment: .top) {
+                            if isRoot && isChordActive {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 5, height: 5)
+                                    .shadow(color: .black.opacity(0.4), radius: 1, y: 0.5)
+                                    .offset(y: -6)
+                            }
+                        }
                     }
                     .frame(width: blackWidth, height: blackHeight)
                     .offset(x: xOffset, y: 0)
@@ -143,6 +177,9 @@ struct PianoRollView: View {
                         )
                     }
                     .onEnded { _ in
+                        if let oldRoot = mouseHeldRootNote {
+                            appState.pressedRootNotes.remove(oldRoot)
+                        }
                         for held in mouseHeldNotes {
                             triggerNoteOff(held)
                         }
@@ -187,6 +224,9 @@ struct PianoRollView: View {
         let hitRoot = hit?.note
 
         if hitRoot != mouseHeldRootNote {
+            if let oldRoot = mouseHeldRootNote {
+                appState.pressedRootNotes.remove(oldRoot)
+            }
             for old in mouseHeldNotes {
                 triggerNoteOff(old)
             }
@@ -194,6 +234,7 @@ struct PianoRollView: View {
             mouseHeldRootNote = hitRoot
 
             if let hit = hit {
+                appState.pressedRootNotes.insert(hit.note)
                 let effectiveHeight = hit.isBlack ? blackHeight : keyHeight
                 let yRatio = Swift.max(0.0, Swift.min(1.0, Double(point.y / max(1, effectiveHeight))))
                 let velocity: UInt8
@@ -261,6 +302,7 @@ struct PianoRollView: View {
                     destinationUID: appState.selectedDestinationUID
                 )
                 appState.activeNotes.remove(note)
+                appState.pressedRootNotes.remove(note)
             }
         }
     }
@@ -274,6 +316,7 @@ struct PianoRollView: View {
             destinationUID: appState.selectedDestinationUID
         )
         appState.activeNotes.remove(note)
+        appState.pressedRootNotes.remove(note)
     }
 
     private func calculateBlackKeyX(key: KeyDescriptor, whiteWidth: CGFloat, blackWidth: CGFloat) -> CGFloat {

@@ -50,7 +50,7 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Radio-group behavior: clicking an active pad deactivates chord mode (returns to single-note mode); clicking an inactive pad activates it
 * * Right-click context menu to choose voicing: "No Chord (Single Note)", 14 standard Chords (Major, Minor, 7th, Maj7, Min7, Half-Dim, etc.), or 20 Bitwig Scales & Modes (Pentatonic, Blues, Dorian, Mixolydian, Harmonic, etc.)
 * * Transposition: playing any note key (or clicking a piano roll key) transmits all chord notes transposed to that root
-* * Polyphonic illumination: piano roll illuminates all notes comprising the triggered chord
+* * Polyphonic illumination: piano roll illuminates all notes comprising the triggered chord; the pressed root key is prominently highlighted at full opacity with a centered white circle marker, while harmonic extension chord keys are displayed at a softer, dimmer opacity for instant visual distinction
 * Alternate Layout (4x4 Drum / Pad Grid):
 * * Selectable via Mode dropdown ("4x4 Grid"); replaces the piano roll and chord pads with an MPC-style 4x4 performance grid
 * * 7 Banks navigation: the octave selector acts as Bank 0–6 selector (navigated via click or `*` / `/` shortcuts), offering 7 × 16 = 112 totally independent pads

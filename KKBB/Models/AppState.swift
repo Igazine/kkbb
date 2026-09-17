@@ -68,6 +68,7 @@ public final class AppState {
     }
 
     public var activeNotes: Set<UInt8> = []
+    public var pressedRootNotes: Set<UInt8> = []
     public var availableDestinations: [MIDIEndpointInfo] = []
     public var pitchBend: UInt16 = 8192
     public var modulation: UInt8 = 0 {
