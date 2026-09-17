@@ -10,6 +10,7 @@ public final class KeyboardMonitor {
     private var pressedKeyToNotes: [UInt16: [UInt8]] = [:]
     private var pressedKeyToCC: [UInt16: CCKeyBinding] = [:]
     private var activeCCToggleStates: [UUID: Bool] = [:]
+    public var keyCaptureHandler: ((NSEvent) -> Bool)?
     private weak var appState: AppState?
     private let pipeline = MIDIPipeline.shared
 
@@ -77,11 +78,37 @@ public final class KeyboardMonitor {
     }
 
     private func handleEvent(_ event: NSEvent) -> Bool {
+        // 1. If key capture handler is active (e.g. recording a hotkey), give it exclusive priority!
+        if let capture = keyCaptureHandler {
+            if capture(event) {
+                return true
+            }
+            return false
+        }
+
+        // 2. If any modal sheet is open on any window, let the sheet handle keystrokes
+        for window in NSApp.windows {
+            if window.isSheet || window.attachedSheet != nil {
+                return false
+            }
+        }
+
+        // 3. If an editable text field/view is the first responder, do not steal keys
+        if let responder = event.window?.firstResponder ?? NSApp.keyWindow?.firstResponder {
+            if responder is NSText || responder is NSTextView || responder is NSTextField {
+                return false
+            }
+        }
+
         guard let appState = appState else { return false }
 
-        // Let system commands (Cmd+Q, Cmd+W, Cmd+H, Cmd+,, etc.) pass through normally
-        if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.control) {
-            return false
+        // 4. Let critical system menu shortcuts pass through (Cmd+Q, Cmd+W, Cmd+H, Cmd+M, Cmd+,)
+        if event.modifierFlags.contains(.command) {
+            if let chars = event.charactersIgnoringModifiers?.lowercased() {
+                if chars == "q" || chars == "w" || chars == "h" || chars == "m" || chars == "," {
+                    return false
+                }
+            }
         }
 
         if event.type == .keyDown {
@@ -142,7 +169,7 @@ public final class KeyboardMonitor {
             }
 
             // Check if this key matches any Chord Pad hot-key
-            if let padIndex = appState.activeProfile.chordPads.firstIndex(where: { matchesKey(keyChar: $0.keyTrigger, event: event) }) {
+            if let padIndex = appState.activeProfile.chordPads.firstIndex(where: { $0.matches(event: event) }) {
                 DispatchQueue.main.async {
                     appState.toggleChordPad(index: padIndex)
                 }

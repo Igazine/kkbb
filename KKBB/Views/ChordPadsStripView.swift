@@ -7,11 +7,15 @@ struct ChordPadButtonView: View {
     let isActive: Bool
     let onToggle: () -> Void
     let onChordSelect: (String) -> Void
-    let onKeyTriggerChange: (String) -> Void
+    let onBindingChange: (_ display: String, _ keyCode: UInt16?, _ modifierFlags: UInt?) -> Void
 
     @State private var isHovered: Bool = false
     @State private var showingKeySheet: Bool = false
-    @State private var newKeyString: String = ""
+
+    @State private var isListening: Bool = true
+    @State private var recordedDisplay: String = ""
+    @State private var recordedKeyCode: UInt16? = nil
+    @State private var recordedModifiers: UInt? = nil
 
     private var chordType: ChordType {
         ChordType.find(by: pad.chordTypeID)
@@ -23,7 +27,7 @@ struct ChordPadButtonView: View {
             onToggle()
         }) {
             VStack(spacing: 2) {
-                Text(pad.keyTrigger.uppercased())
+                Text(pad.keyTrigger.isEmpty ? "-" : pad.keyTrigger.uppercased())
                     .font(.system(size: 8.5, weight: .bold, design: .monospaced))
                     .foregroundStyle(isActive ? Color.accentColor : .secondary)
 
@@ -102,7 +106,9 @@ struct ChordPadButtonView: View {
         Divider()
 
         Button("Change Hot-Key…") {
-            newKeyString = pad.keyTrigger
+            recordedDisplay = pad.keyTrigger.isEmpty ? "" : pad.keyTrigger.uppercased()
+            recordedKeyCode = pad.keyCode
+            recordedModifiers = pad.modifierFlags
             showingKeySheet = true
         }
 
@@ -116,41 +122,128 @@ struct ChordPadButtonView: View {
 
     private var configureKeySheet: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Configure Pad \(index + 1) Hot-Key")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Enter the keyboard trigger (e.g. F1-F12, or any key):")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                HStack {
-                    Text("Hot-Key:")
-                    TextField("e.g. F1", text: $newKeyString)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Configure Pad \(index + 1) Hot-Key")
+                        .font(.headline)
+                    Text(chordType.name)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                Spacer()
             }
 
-            HStack {
+            // Key capture card
+            VStack(spacing: 12) {
+                if isListening {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 10, height: 10)
+                        Text("Listening for keystroke…")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.accentColor)
+                    }
+
+                    Text("Press any key or combination on your keyboard\n(e.g. F1–F12, 1–9, ⇧1, ⌥A, ⌘K, etc.)")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                } else {
+                    VStack(spacing: 6) {
+                        Text(recordedDisplay.isEmpty ? "None (Unassigned)" : recordedDisplay)
+                            .font(.system(size: 26, weight: .bold, design: .monospaced))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(Color.accentColor.opacity(0.15))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.accentColor, lineWidth: 1.5)
+                            )
+
+                        Text("Key combination captured!")
+                            .font(.caption.bold())
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(Color.secondary.opacity(0.08))
+            .cornerRadius(10)
+
+            HStack(spacing: 12) {
+                if !isListening {
+                    Button("Re-record Key") {
+                        startListening()
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                Button("Clear Key") {
+                    recordedDisplay = ""
+                    recordedKeyCode = nil
+                    recordedModifiers = nil
+                    isListening = false
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.red)
+
                 Spacer()
+
                 Button("Cancel") {
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
                     showingKeySheet = false
                 }
                 .keyboardShortcut(.cancelAction)
 
                 Button("Save") {
-                    let cleaned = newKeyString.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                    if !cleaned.isEmpty {
-                        onKeyTriggerChange(cleaned)
-                    }
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                    onBindingChange(recordedDisplay, recordedKeyCode, recordedModifiers)
                     showingKeySheet = false
                 }
                 .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
             }
         }
-        .padding()
-        .frame(width: 320)
+        .padding(20)
+        .frame(width: 360)
+        .onAppear {
+            startListening()
+        }
+        .onDisappear {
+            KeyboardMonitor.shared.keyCaptureHandler = nil
+        }
+    }
+
+    private func startListening() {
+        isListening = true
+        KeyboardMonitor.shared.keyCaptureHandler = { event in
+            guard event.type == .keyDown else { return false }
+
+            // Allow Esc to cancel listening
+            if event.keyCode == 53 && event.modifierFlags.intersection([.shift, .control, .option, .command]).isEmpty {
+                DispatchQueue.main.async {
+                    isListening = false
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                }
+                return true
+            }
+
+            if let parsed = ChordPadConfig.parseEvent(event) {
+                DispatchQueue.main.async {
+                    recordedDisplay = parsed.display
+                    recordedKeyCode = parsed.keyCode
+                    recordedModifiers = parsed.modifierFlags
+                    isListening = false
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                }
+                return true
+            }
+            return false
+        }
     }
 }
 
@@ -170,8 +263,13 @@ struct ChordPadsStripView: View {
                     onChordSelect: { newChordID in
                         appState.updateChordPad(index: index, chordTypeID: newChordID)
                     },
-                    onKeyTriggerChange: { newTrigger in
-                        appState.updateChordPadTrigger(index: index, keyTrigger: newTrigger)
+                    onBindingChange: { display, keyCode, modifiers in
+                        appState.updateChordPadBinding(
+                            index: index,
+                            keyTrigger: display,
+                            keyCode: keyCode,
+                            modifierFlags: modifiers
+                        )
                     }
                 )
             }

@@ -66,31 +66,147 @@ public struct KnobConfig: Identifiable, Codable, Hashable {
     ]
 }
 
+import AppKit
+
 public struct ChordPadConfig: Identifiable, Codable, Hashable {
     public var id: UUID
-    public var keyTrigger: String // e.g. "f1", "f2", ... "f12"
+    public var keyTrigger: String // Display representation, e.g. "F1", "⇧1", "⌥A"
     public var chordTypeID: String // references ChordType.id
+    public var keyCode: UInt16?
+    public var modifierFlags: UInt?
 
-    public init(id: UUID = UUID(), keyTrigger: String, chordTypeID: String) {
+    public init(
+        id: UUID = UUID(),
+        keyTrigger: String,
+        chordTypeID: String,
+        keyCode: UInt16? = nil,
+        modifierFlags: UInt? = nil
+    ) {
         self.id = id
-        self.keyTrigger = keyTrigger.lowercased()
+        self.keyTrigger = keyTrigger
         self.chordTypeID = chordTypeID
+        self.keyCode = keyCode
+        self.modifierFlags = modifierFlags
     }
 
     public static let defaultPads: [ChordPadConfig] = [
-        ChordPadConfig(keyTrigger: "f1", chordTypeID: "none"),
-        ChordPadConfig(keyTrigger: "f2", chordTypeID: "major_triad"),
-        ChordPadConfig(keyTrigger: "f3", chordTypeID: "minor_triad"),
-        ChordPadConfig(keyTrigger: "f4", chordTypeID: "dom7"),
-        ChordPadConfig(keyTrigger: "f5", chordTypeID: "maj7"),
-        ChordPadConfig(keyTrigger: "f6", chordTypeID: "min7"),
-        ChordPadConfig(keyTrigger: "f7", chordTypeID: "half_dim"),
-        ChordPadConfig(keyTrigger: "f8", chordTypeID: "sus4"),
-        ChordPadConfig(keyTrigger: "f9", chordTypeID: "major_pentatonic"),
-        ChordPadConfig(keyTrigger: "f10", chordTypeID: "minor_pentatonic"),
-        ChordPadConfig(keyTrigger: "f11", chordTypeID: "blues_minor"),
-        ChordPadConfig(keyTrigger: "f12", chordTypeID: "dorian")
+        ChordPadConfig(keyTrigger: "F1", chordTypeID: "none", keyCode: 122, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F2", chordTypeID: "major_triad", keyCode: 120, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F3", chordTypeID: "minor_triad", keyCode: 99, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F4", chordTypeID: "dom7", keyCode: 118, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F5", chordTypeID: "maj7", keyCode: 96, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F6", chordTypeID: "min7", keyCode: 97, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F7", chordTypeID: "half_dim", keyCode: 98, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F8", chordTypeID: "sus4", keyCode: 100, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F9", chordTypeID: "major_pentatonic", keyCode: 101, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F10", chordTypeID: "minor_pentatonic", keyCode: 109, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F11", chordTypeID: "blues_minor", keyCode: 103, modifierFlags: 0),
+        ChordPadConfig(keyTrigger: "F12", chordTypeID: "dorian", keyCode: 111, modifierFlags: 0)
     ]
+
+    public static func parseEvent(_ event: NSEvent) -> (display: String, keyCode: UInt16, modifierFlags: UInt)? {
+        let rawFlags = event.modifierFlags.intersection([.shift, .control, .option, .command])
+        var prefix = ""
+        if rawFlags.contains(.control) { prefix += "⌃" }
+        if rawFlags.contains(.option) { prefix += "⌥" }
+        if rawFlags.contains(.shift) { prefix += "⇧" }
+        if rawFlags.contains(.command) { prefix += "⌘" }
+
+        let keyName: String
+        switch event.keyCode {
+        case 122: keyName = "F1"
+        case 120: keyName = "F2"
+        case 99: keyName = "F3"
+        case 118: keyName = "F4"
+        case 96: keyName = "F5"
+        case 97: keyName = "F6"
+        case 98: keyName = "F7"
+        case 100: keyName = "F8"
+        case 101: keyName = "F9"
+        case 109: keyName = "F10"
+        case 103: keyName = "F11"
+        case 111: keyName = "F12"
+        case 105: keyName = "F13"
+        case 107: keyName = "F14"
+        case 113: keyName = "F15"
+        case 106: keyName = "F16"
+        case 49: keyName = "Space"
+        case 36: keyName = "Return"
+        case 48: keyName = "Tab"
+        case 53: keyName = "Esc"
+        case 51: keyName = "Delete"
+        case 117: keyName = "ForwardDelete"
+        case 123: keyName = "←"
+        case 124: keyName = "→"
+        case 125: keyName = "↓"
+        case 126: keyName = "↑"
+        case 18: keyName = "1"
+        case 19: keyName = "2"
+        case 20: keyName = "3"
+        case 21: keyName = "4"
+        case 23: keyName = "5"
+        case 22: keyName = "6"
+        case 26: keyName = "7"
+        case 28: keyName = "8"
+        case 25: keyName = "9"
+        case 29: keyName = "0"
+        case 27: keyName = "-"
+        case 24: keyName = "="
+        case 42: keyName = "\\"
+        case 33: keyName = "["
+        case 30: keyName = "]"
+        case 41: keyName = ";"
+        case 39: keyName = "'"
+        case 43: keyName = ","
+        case 47: keyName = "."
+        case 44: keyName = "/"
+        case 50: keyName = "`"
+        default:
+            if let chars = event.charactersIgnoringModifiers?.uppercased(), !chars.isEmpty {
+                keyName = chars
+            } else {
+                keyName = "Key\(event.keyCode)"
+            }
+        }
+
+        let display = prefix + keyName
+        return (display, event.keyCode, rawFlags.rawValue)
+    }
+
+    public func matches(event: NSEvent) -> Bool {
+        if let code = self.keyCode {
+            let activeMods = event.modifierFlags.intersection([.shift, .control, .option, .command]).rawValue
+            let expectedMods = self.modifierFlags ?? 0
+            return event.keyCode == code && activeMods == expectedMods
+        }
+        return matchesLegacy(keyChar: self.keyTrigger, event: event)
+    }
+
+    private func matchesLegacy(keyChar: String, event: NSEvent) -> Bool {
+        let norm = keyChar.trimmingCharacters(in: .whitespaces).lowercased()
+        switch norm {
+        case "f1": return event.keyCode == 122
+        case "f2": return event.keyCode == 120
+        case "f3": return event.keyCode == 99
+        case "f4": return event.keyCode == 118
+        case "f5": return event.keyCode == 96
+        case "f6": return event.keyCode == 97
+        case "f7": return event.keyCode == 98
+        case "f8": return event.keyCode == 100
+        case "f9": return event.keyCode == 101
+        case "f10": return event.keyCode == 109
+        case "f11": return event.keyCode == 103
+        case "f12": return event.keyCode == 111
+        case "space", " ": return event.keyCode == 49
+        case "tab": return event.keyCode == 48
+        case "return", "enter": return event.keyCode == 36
+        default:
+            if let chars = event.charactersIgnoringModifiers?.lowercased() {
+                return chars == norm
+            }
+            return false
+        }
+    }
 }
 
 public struct KeyBindingProfile: Identifiable, Codable, Hashable {

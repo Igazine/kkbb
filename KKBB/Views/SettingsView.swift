@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var selectedTab: SettingsTab = .profiles
     @State private var newProfileName: String = ""
     @State private var showingNewProfileAlert: Bool = false
+    @State private var recordingPadIndex: Int? = nil
 
     enum SettingsTab: String, CaseIterable, Identifiable {
         case profiles = "Profiles"
@@ -608,15 +609,51 @@ struct SettingsView: View {
                                 .font(.system(size: 11, weight: .bold))
                                 .frame(width: 44, alignment: .leading)
 
-                            // Hot-Key TextField
-                            TextField("Key", text: Binding(
-                                get: { pad.keyTrigger.uppercased() },
-                                set: { newKey in
-                                    appState.updateChordPadTrigger(index: idx, keyTrigger: newKey)
+                            // Hot-Key recording button
+                            Button(action: {
+                                if recordingPadIndex == idx {
+                                    recordingPadIndex = nil
+                                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                                } else {
+                                    startRecordingPad(idx)
                                 }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 58)
+                            }) {
+                                HStack(spacing: 4) {
+                                    if recordingPadIndex == idx {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 6, height: 6)
+                                        Text("Press key…")
+                                            .font(.system(size: 9.5, weight: .bold))
+                                            .foregroundStyle(Color.accentColor)
+                                    } else {
+                                        Text(pad.keyTrigger.isEmpty ? "Record" : pad.keyTrigger.uppercased())
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundStyle(pad.keyTrigger.isEmpty ? .secondary : .primary)
+                                    }
+                                }
+                                .frame(width: 72, height: 22)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(recordingPadIndex == idx ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.12))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(recordingPadIndex == idx ? Color.accentColor : Color.secondary.opacity(0.2), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+
+                            if !pad.keyTrigger.isEmpty {
+                                Button(action: {
+                                    appState.updateChordPadBinding(index: idx, keyTrigger: "", keyCode: nil, modifierFlags: nil)
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            }
 
                             // Chord Type Picker
                             Picker("", selection: Binding(
@@ -646,6 +683,42 @@ struct SettingsView: View {
                 }
                 .padding(.vertical, 4)
             }
+            .onDisappear {
+                if recordingPadIndex != nil {
+                    recordingPadIndex = nil
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                }
+            }
+        }
+    }
+
+    private func startRecordingPad(_ index: Int) {
+        recordingPadIndex = index
+        KeyboardMonitor.shared.keyCaptureHandler = { event in
+            guard event.type == .keyDown else { return false }
+
+            if event.keyCode == 53 && event.modifierFlags.intersection([.shift, .control, .option, .command]).isEmpty {
+                DispatchQueue.main.async {
+                    recordingPadIndex = nil
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                }
+                return true
+            }
+
+            if let parsed = ChordPadConfig.parseEvent(event) {
+                DispatchQueue.main.async {
+                    appState.updateChordPadBinding(
+                        index: index,
+                        keyTrigger: parsed.display,
+                        keyCode: parsed.keyCode,
+                        modifierFlags: parsed.modifierFlags
+                    )
+                    recordingPadIndex = nil
+                    KeyboardMonitor.shared.keyCaptureHandler = nil
+                }
+                return true
+            }
+            return false
         }
     }
 }

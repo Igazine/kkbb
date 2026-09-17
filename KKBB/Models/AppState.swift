@@ -219,9 +219,23 @@ public final class AppState {
         }
     }
 
+    public func updateChordPadBinding(index: Int, keyTrigger: String, keyCode: UInt16?, modifierFlags: UInt?) {
+        guard index >= 0 && index < activeProfile.chordPads.count else { return }
+        activeProfile.chordPads[index].keyTrigger = keyTrigger
+        activeProfile.chordPads[index].keyCode = keyCode
+        activeProfile.chordPads[index].modifierFlags = modifierFlags
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            saveDefaultChordPads()
+        }
+    }
+
     public func updateChordPadTrigger(index: Int, keyTrigger: String) {
         guard index >= 0 && index < activeProfile.chordPads.count else { return }
-        activeProfile.chordPads[index].keyTrigger = keyTrigger.trimmingCharacters(in: .whitespaces).lowercased()
+        activeProfile.chordPads[index].keyTrigger = keyTrigger.trimmingCharacters(in: .whitespaces)
+        activeProfile.chordPads[index].keyCode = nil
+        activeProfile.chordPads[index].modifierFlags = nil
         if !activeProfile.isDefault {
             updateActiveProfile()
         } else {
