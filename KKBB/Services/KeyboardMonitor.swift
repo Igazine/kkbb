@@ -149,6 +149,14 @@ public final class KeyboardMonitor {
             DispatchQueue.main.async {
                 appState.activeNotes.insert(note)
             }
+
+            if appState.isOneShotMode {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self, weak appState] in
+                    guard let self = self, let appState = appState else { return }
+                    self.pipeline.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
+                    appState.activeNotes.remove(note)
+                }
+            }
             return true
 
         } else if event.type == .keyUp {
@@ -167,12 +175,14 @@ public final class KeyboardMonitor {
                 return false
             }
 
-            let channel = appState.channel
-            let destUID = appState.selectedDestinationUID
-            pipeline.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
+            if !appState.isOneShotMode {
+                let channel = appState.channel
+                let destUID = appState.selectedDestinationUID
+                pipeline.sendNoteOff(note: note, channel: channel, destinationUID: destUID)
 
-            DispatchQueue.main.async {
-                appState.activeNotes.remove(note)
+                DispatchQueue.main.async {
+                    appState.activeNotes.remove(note)
+                }
             }
             return true
         }

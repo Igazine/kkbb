@@ -55,6 +55,12 @@ struct TopBarView: View {
                     .frame(width: 60)
                 }
 
+                // One-Shot Mode Toggle
+                Toggle("One-Shot", isOn: $appState.isOneShotMode)
+                    .toggleStyle(.checkbox)
+                    .font(.caption)
+                    .help("One-Shot Mode: sends a short 50ms trigger note without sustain (ideal for drums and percussion)")
+
                 Spacer()
 
                 // Panic Button

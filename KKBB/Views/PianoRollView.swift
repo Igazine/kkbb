@@ -203,9 +203,22 @@ struct PianoRollView: View {
             destinationUID: appState.selectedDestinationUID
         )
         appState.activeNotes.insert(note)
+
+        if appState.isOneShotMode {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak appState] in
+                guard let appState = appState else { return }
+                MIDIPipeline.shared.sendNoteOff(
+                    note: note,
+                    channel: appState.channel,
+                    destinationUID: appState.selectedDestinationUID
+                )
+                appState.activeNotes.remove(note)
+            }
+        }
     }
 
     private func triggerNoteOff(_ note: UInt8) {
+        if appState.isOneShotMode { return }
         guard appState.activeNotes.contains(note) else { return }
         MIDIPipeline.shared.sendNoteOff(
             note: note,

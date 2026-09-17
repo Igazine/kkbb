@@ -56,6 +56,11 @@ public final class AppState {
     public var availableDestinations: [MIDIEndpointInfo] = []
     public var pitchBend: UInt16 = 8192
     public var modulation: UInt8 = 0
+    public var isOneShotMode: Bool {
+        didSet {
+            defaults.set(isOneShotMode, forKey: "kkbb.isOneShotMode")
+        }
+    }
 
     public var activeProfile: KeyBindingProfile {
         didSet {
@@ -90,6 +95,8 @@ public final class AppState {
 
         let savedVelocity = defaults.integer(forKey: "kkbb.velocity")
         self.velocity = (1...127).contains(savedVelocity) ? savedVelocity : 100
+
+        self.isOneShotMode = defaults.bool(forKey: "kkbb.isOneShotMode")
 
         // Load profiles
         var loadedProfiles: [KeyBindingProfile] = []
