@@ -50,8 +50,10 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 
 ### General
 
-* `*` - Octave +1
-* `/` - Octave -1
+* `*` or `↑` (Up Arrow) - Octave +1
+* `/` or `↓` (Down Arrow) - Octave -1
+* `←` (Left Arrow) - Velocity -1 (or -10 with `Shift` + `←`)
+* `→` (Right Arrow) - Velocity +1 (or +10 with `Shift` + `→`)
 
 ### One-octave mode
 

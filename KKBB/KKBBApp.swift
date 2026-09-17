@@ -12,19 +12,41 @@ struct KKBBApp: App {
         .windowToolbarStyle(.unifiedCompact)
         .commands {
             CommandMenu("Keyboard") {
-                Button("Octave Up (+)") {
+                Button("Octave Up") {
                     if appState.octave < 6 {
                         appState.octave += 1
                     }
                 }
-                .keyboardShortcut("*", modifiers: [])
+                .keyboardShortcut(.upArrow, modifiers: [])
 
-                Button("Octave Down (-)") {
+                Button("Octave Down") {
                     if appState.octave > 0 {
                         appState.octave -= 1
                     }
                 }
-                .keyboardShortcut("/", modifiers: [])
+                .keyboardShortcut(.downArrow, modifiers: [])
+
+                Divider()
+
+                Button("Increase Velocity (+1)") {
+                    appState.velocity = Swift.min(127, appState.velocity + 1)
+                }
+                .keyboardShortcut(.rightArrow, modifiers: [])
+
+                Button("Decrease Velocity (-1)") {
+                    appState.velocity = Swift.max(1, appState.velocity - 1)
+                }
+                .keyboardShortcut(.leftArrow, modifiers: [])
+
+                Button("Increase Velocity (+10)") {
+                    appState.velocity = Swift.min(127, appState.velocity + 10)
+                }
+                .keyboardShortcut(.rightArrow, modifiers: [.shift])
+
+                Button("Decrease Velocity (-10)") {
+                    appState.velocity = Swift.max(1, appState.velocity - 10)
+                }
+                .keyboardShortcut(.leftArrow, modifiers: [.shift])
 
                 Divider()
 

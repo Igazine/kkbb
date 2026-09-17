@@ -51,6 +51,38 @@ public final class KeyboardMonitor {
         }
 
         if event.type == .keyDown {
+            // Check for Arrow keys (Octave: Up/Down, Velocity: Left/Right)
+            switch event.keyCode {
+            case 126: // Up Arrow -> Octave +1
+                DispatchQueue.main.async {
+                    if appState.octave < 6 {
+                        appState.octave += 1
+                    }
+                }
+                return true
+            case 125: // Down Arrow -> Octave -1
+                DispatchQueue.main.async {
+                    if appState.octave > 0 {
+                        appState.octave -= 1
+                    }
+                }
+                return true
+            case 123: // Left Arrow -> Velocity -1 (or -10 with Shift)
+                let step = event.modifierFlags.contains(.shift) ? 10 : 1
+                DispatchQueue.main.async {
+                    appState.velocity = Swift.max(1, appState.velocity - step)
+                }
+                return true
+            case 124: // Right Arrow -> Velocity +1 (or +10 with Shift)
+                let step = event.modifierFlags.contains(.shift) ? 10 : 1
+                DispatchQueue.main.async {
+                    appState.velocity = Swift.min(127, appState.velocity + step)
+                }
+                return true
+            default:
+                break
+            }
+
             // Check for octave shifts (* and /)
             let directChar = event.characters
             let rawChar = event.charactersIgnoringModifiers
