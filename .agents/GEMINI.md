@@ -54,6 +54,7 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * Alternate Layout (4x4 Drum / Pad Grid):
 * * Selectable via Mode dropdown ("4x4 Grid"); replaces the piano roll and chord pads with an MPC-style 4x4 performance grid
 * * 7 Banks navigation: the octave selector acts as Bank 0–6 selector (navigated via click or `*` / `/` shortcuts), offering 7 × 16 = 112 totally independent pads
+* * Cross-Bank Playback: Switching banks changes the visible 16 pads, but all 112 pads across all 7 banks remain actively triggerable by their assigned hot-keys without being disabled
 * * Fully customizable pads: right-click context menu assigns Hot-Key (interactive recording sheet), Root Note (C to B), Octave (0 to 6), and Chord Voicing (No Chord, 14 standard chords, 20 Bitwig scales)
 * * Pad labels show assigned Key combination, Note + Octave (e.g. C1), and Chord badge (e.g. m7); unassigned pads display empty
 * * Visual Feedback: Active pad glows in accent blue upon physical keyboard press or mouse trigger
