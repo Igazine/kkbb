@@ -16,8 +16,14 @@ struct ContentView: View {
 
                 Divider()
 
-                PianoRollView(appState: appState)
-                    .frame(minHeight: 120, maxHeight: .infinity)
+                VStack(spacing: 0) {
+                    OctaveBarView(appState: appState)
+
+                    Divider()
+
+                    PianoRollView(appState: appState)
+                        .frame(minHeight: 120, maxHeight: .infinity)
+                }
             }
         }
         .frame(minWidth: 720, minHeight: 220)

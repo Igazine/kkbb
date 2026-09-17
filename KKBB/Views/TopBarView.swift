@@ -55,51 +55,6 @@ struct TopBarView: View {
                     .frame(width: 60)
                 }
 
-                Divider()
-                    .frame(height: 24)
-
-                // Octave Slider
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text("Octave")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text("C\(appState.octave)")
-                            .font(.caption2.monospacedDigit().bold())
-                    }
-                    Slider(
-                        value: Binding(
-                            get: { Double(appState.octave) },
-                            set: { appState.octave = Int($0) }
-                        ),
-                        in: 0...6,
-                        step: 1
-                    )
-                    .frame(width: 90)
-                }
-
-                // Velocity Slider
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text("Velocity")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text("\(appState.velocity)")
-                            .font(.caption2.monospacedDigit().bold())
-                    }
-                    Slider(
-                        value: Binding(
-                            get: { Double(appState.velocity) },
-                            set: { appState.velocity = Int($0) }
-                        ),
-                        in: 1...127,
-                        step: 1
-                    )
-                    .frame(width: 90)
-                }
-
                 Spacer()
 
                 // Panic Button

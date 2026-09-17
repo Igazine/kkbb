@@ -24,6 +24,7 @@
 		10000015 /* KeyBindingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000015 /* KeyBindingProfile.swift */; };
 		10000016 /* PitchModWheelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000016 /* PitchModWheelsView.swift */; };
 		10000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000017 /* SettingsView.swift */; };
+		10000018 /* OctaveBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000018 /* OctaveBarView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		20000015 /* KeyBindingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBindingProfile.swift; sourceTree = "<group>"; };
 		20000016 /* PitchModWheelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchModWheelsView.swift; sourceTree = "<group>"; };
 		20000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		20000018 /* OctaveBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaveBarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 			children = (
 				20000009 /* ContentView.swift */,
 				20000007 /* TopBarView.swift */,
+				20000018 /* OctaveBarView.swift */,
 				20000008 /* PianoRollView.swift */,
 				20000016 /* PitchModWheelsView.swift */,
 				20000017 /* SettingsView.swift */,
@@ -219,6 +222,7 @@
 				10000005 /* MIDIManager.swift in Sources */,
 				10000006 /* KeyboardMonitor.swift in Sources */,
 				10000007 /* TopBarView.swift in Sources */,
+				10000018 /* OctaveBarView.swift in Sources */,
 				10000008 /* PianoRollView.swift in Sources */,
 				10000016 /* PitchModWheelsView.swift in Sources */,
 				10000017 /* SettingsView.swift in Sources */,

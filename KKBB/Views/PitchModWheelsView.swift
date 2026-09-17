@@ -3,8 +3,6 @@ import SwiftUI
 public struct PitchModWheelsView: View {
     @Bindable var appState: AppState
 
-    @State private var pitchDragOffset: CGFloat = 0
-    @State private var modDragOffset: CGFloat = 0
     @State private var isPitchActive: Bool = false
 
     private let wheelWidth: CGFloat = 22
@@ -19,8 +17,71 @@ public struct PitchModWheelsView: View {
             let wheelHeight = geometry.size.height
             let halfHeight = max(10, wheelHeight / 2.0)
 
-            HStack(spacing: 8) {
-                // Pitch Bend Wheel (Spring-loaded to center)
+            HStack(spacing: 6) {
+                // MARK: - Velocity Slider (Friction-loaded, 1...127)
+                VStack(spacing: 2) {
+                    Text("VEL")
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.secondary)
+
+                    ZStack(alignment: .bottom) {
+                        // Base well
+                        RoundedRectangle(cornerRadius: wheelCornerRadius)
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: wheelCornerRadius)
+                                    .stroke(Color.black.opacity(0.35), lineWidth: 0.5)
+                            )
+
+                        // Velocity fill bar
+                        let velRatio = Double(appState.velocity - 1) / 126.0
+                        let fillHeight = velRatio * Double(wheelHeight - 20)
+                        RoundedRectangle(cornerRadius: wheelCornerRadius)
+                            .fill(Color.accentColor.opacity(0.25))
+                            .frame(height: max(0, fillHeight))
+
+                        // Textured Thumb
+                        let thumbYOffset = -(velRatio * Double(wheelHeight - 34))
+
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(nsColor: .darkGray), Color(nsColor: .systemGray).opacity(0.5), Color(nsColor: .darkGray)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                                .frame(width: wheelWidth - 4, height: 26)
+
+                            // Grooves
+                            VStack(spacing: 2) {
+                                ForEach(0..<3) { _ in
+                                    Rectangle()
+                                        .fill(Color.black.opacity(0.5))
+                                        .frame(width: wheelWidth - 8, height: 1.5)
+                                }
+                            }
+                        }
+                        .offset(y: thumbYOffset)
+                    }
+                    .frame(width: wheelWidth)
+                    .contentShape(Rectangle())
+                    .help("Velocity: \(appState.velocity)")
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                let usableHeight = max(10, wheelHeight - 34)
+                                // Inverted Y: dragging up increases velocity
+                                let clickYFromBottom = wheelHeight - value.location.y
+                                let ratio = Swift.max(0.0, Swift.min(1.0, Double(clickYFromBottom / usableHeight)))
+                                let newVel = Int(1.0 + (ratio * 126.0))
+                                appState.velocity = Swift.max(1, Swift.min(127, newVel))
+                            }
+                    )
+                }
+
+                // MARK: - Pitch Bend Wheel (Spring-loaded to center)
                 VStack(spacing: 2) {
                     Text("PITCH")
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
@@ -73,6 +134,7 @@ public struct PitchModWheelsView: View {
                     }
                     .frame(width: wheelWidth)
                     .contentShape(Rectangle())
+                    .help("Pitch Bend (Center: 8192)")
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
@@ -105,7 +167,7 @@ public struct PitchModWheelsView: View {
                     )
                 }
 
-                // Modulation Wheel (Friction-loaded, holds position)
+                // MARK: - Modulation Wheel (Friction-loaded, CC #1)
                 VStack(spacing: 2) {
                     Text("MOD")
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
@@ -154,6 +216,7 @@ public struct PitchModWheelsView: View {
                     }
                     .frame(width: wheelWidth)
                     .contentShape(Rectangle())
+                    .help("Modulation (CC #1: \(appState.modulation))")
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
@@ -172,10 +235,10 @@ public struct PitchModWheelsView: View {
                     )
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 6)
             .padding(.vertical, 4)
             .background(Color(nsColor: .windowBackgroundColor).opacity(0.5))
         }
-        .frame(width: 58)
+        .frame(width: 92)
     }
 }
