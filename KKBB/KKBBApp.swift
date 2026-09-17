@@ -5,11 +5,12 @@ struct KKBBApp: App {
     @State private var appState = AppState()
 
     var body: some Scene {
-        WindowGroup {
+        Window("KKBB — KeyKeyBoardBoard", id: "main") {
             ContentView(appState: appState)
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unifiedCompact)
+        .defaultSize(width: 820, height: 260)
         .commands {
             CommandMenu("Keyboard") {
                 Button("Octave Up") {

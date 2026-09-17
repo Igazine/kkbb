@@ -37,6 +37,8 @@ struct PianoRollView: View {
             let keyHeight = geometry.size.height
             let blackWidth = keyWidth * 0.62
             let blackHeight = keyHeight * 0.62
+            let shortcutSize = Swift.max(8.0, Swift.min(16.0, keyWidth * 0.22 * CGFloat(Swift.min(2.0, appState.zoom))))
+            let noteLabelSize = Swift.max(7.0, Swift.min(12.0, keyWidth * 0.18 * CGFloat(Swift.min(2.0, appState.zoom))))
 
             ZStack(alignment: .topLeading) {
                 // Background
@@ -57,11 +59,11 @@ struct PianoRollView: View {
                             VStack(spacing: 2) {
                                 if let shortcut = key.shortcut {
                                     Text(shortcut.uppercased())
-                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                        .font(.system(size: shortcutSize, weight: .bold, design: .monospaced))
                                         .foregroundStyle(isActive ? .primary : .secondary)
                                 }
                                 Text(key.noteName)
-                                    .font(.system(size: 9, weight: .medium))
+                                    .font(.system(size: noteLabelSize, weight: .medium))
                                     .foregroundStyle(.secondary)
                             }
                             .padding(.bottom, 8)
@@ -86,7 +88,7 @@ struct PianoRollView: View {
 
                         if let shortcut = key.shortcut {
                             Text(shortcut.uppercased())
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.system(size: Swift.max(7.5, shortcutSize * 0.9), weight: .bold, design: .monospaced))
                                 .foregroundStyle(isActive ? Color.black : Color.white.opacity(0.9))
                                 .padding(.bottom, 6)
                         }
