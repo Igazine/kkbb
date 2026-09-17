@@ -23,16 +23,16 @@ struct KnobsStripView: View {
                 .frame(maxWidth: .infinity)
 
                 if index < 7 {
-                    Divider()
-                        .frame(height: 38)
-                        .opacity(0.3)
+                    Rectangle()
+                        .fill(Color.black.opacity(0.35))
+                        .frame(width: 1, height: 32)
                 }
             }
         }
         .frame(height: 54)
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
-        .background(Color(nsColor: .controlBackgroundColor).opacity(0.45))
+        .background(Color.black.opacity(0.18))
         .clipped()
         .focusable(false)
     }

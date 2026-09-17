@@ -8,22 +8,20 @@ struct ContentView: View {
         VStack(spacing: 0) {
             TopBarView(appState: appState, showSettings: $showSettings)
 
-            Divider()
+            darkHDivider
 
             HStack(spacing: 0) {
                 PitchModWheelsView(appState: appState)
                     .frame(width: 96)
 
-                Divider()
+                darkVDivider
 
                 VStack(spacing: 0) {
                     OctaveBarView(appState: appState)
 
-                    Divider()
-
                     KnobsStripView(appState: appState)
 
-                    Divider()
+                    darkHDivider
 
                     if appState.mode == .drumGrid {
                         DrumPadGridView(appState: appState)
@@ -34,7 +32,7 @@ struct ContentView: View {
                             .frame(minHeight: 120, maxHeight: .infinity)
                             .clipped()
 
-                        Divider()
+                        darkHDivider
 
                         ChordPadsStripView(appState: appState)
                     }
@@ -78,5 +76,17 @@ struct ContentView: View {
 
     private func refreshDestinations() {
         appState.availableDestinations = MIDIManager.shared.getDestinations()
+    }
+
+    private var darkHDivider: some View {
+        Rectangle()
+            .fill(Color.black.opacity(0.65))
+            .frame(height: 1)
+    }
+
+    private var darkVDivider: some View {
+        Rectangle()
+            .fill(Color.black.opacity(0.65))
+            .frame(width: 1)
     }
 }

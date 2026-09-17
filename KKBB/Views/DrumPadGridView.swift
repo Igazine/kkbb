@@ -36,7 +36,7 @@ public struct DrumPadGridView: View {
             }
         }
         .padding(6)
-        .background(Color(nsColor: .windowBackgroundColor).opacity(0.5))
+        .background(Color.black.opacity(0.12))
         .clipped()
         .sheet(isPresented: $showKeyRecorder) {
             keyRecorderSheet

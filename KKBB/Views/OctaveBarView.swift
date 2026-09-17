@@ -20,14 +20,14 @@ public struct OctaveBarView: View {
                             .fill(
                                 isSelected
                                     ? Color.accentColor
-                                    : Color.secondary.opacity(0.18)
+                                    : Color.secondary.opacity(0.12)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 5)
                                     .stroke(
                                         isSelected
                                             ? Color.white.opacity(0.2)
-                                            : Color.black.opacity(0.2),
+                                            : Color.black.opacity(0.4),
                                         lineWidth: 0.5
                                     )
                             )
@@ -46,6 +46,6 @@ public struct OctaveBarView: View {
         .focusable(false)
         .padding(.horizontal, 4)
         .padding(.vertical, 5)
-        .background(Color(nsColor: .windowBackgroundColor).opacity(0.4))
+        .background(Color.black.opacity(0.18))
     }
 }
