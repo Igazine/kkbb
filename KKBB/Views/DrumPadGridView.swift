@@ -47,7 +47,7 @@ public struct DrumPadGridView: View {
     private func drumPadCell(padIndex: Int) -> some View {
         let bank = appState.octave
         let config = appState.drumPadConfig(bank: bank, padIndex: padIndex)
-        let isActive = appState.activeDrumPadIndices.contains(padIndex)
+        let isActive = appState.isDrumPadActive(bank: bank, padIndex: padIndex)
         let isAssigned = config?.isAssigned == true
 
         ZStack {
@@ -134,7 +134,7 @@ public struct DrumPadGridView: View {
                 .onChanged { _ in
                     // Only trigger if left mouse button is pressed
                     guard (NSEvent.pressedMouseButtons & 1) != 0 else { return }
-                    if !appState.activeDrumPadIndices.contains(padIndex) {
+                    if !appState.isDrumPadActive(bank: bank, padIndex: padIndex) {
                         NSApp.keyWindow?.makeFirstResponder(nil)
                         appState.triggerDrumPadOn(bank: bank, padIndex: padIndex)
                     }

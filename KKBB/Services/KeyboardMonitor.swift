@@ -203,14 +203,27 @@ public final class KeyboardMonitor {
                 return true
             }
 
-            // In Drum Grid mode: check active bank pads
+            // In Drum Grid mode: check all banks, giving priority to the visible bank
             if appState.mode == .drumGrid {
-                let bank = appState.octave
+                let currentBank = appState.octave
                 var matchedPad: DrumPadConfig? = nil
+
+                // 1. Check visible bank first
                 for pIdx in 0..<16 {
-                    if let cfg = appState.drumPadConfig(bank: bank, padIndex: pIdx), cfg.matches(event: event) && cfg.isAssigned {
+                    if let cfg = appState.drumPadConfig(bank: currentBank, padIndex: pIdx),
+                       cfg.matches(event: event) && cfg.isAssigned {
                         matchedPad = cfg
                         break
+                    }
+                }
+
+                // 2. If not matched in visible bank, check all other banks across the active profile
+                if matchedPad == nil {
+                    for (_, cfg) in appState.activeProfile.drumPads {
+                        if cfg.bank != currentBank && cfg.matches(event: event) && cfg.isAssigned {
+                            matchedPad = cfg
+                            break
+                        }
                     }
                 }
 
@@ -227,8 +240,9 @@ public final class KeyboardMonitor {
                     pipeline.sendNoteOn(note: n, velocity: velocity, channel: channel, destinationUID: destUID)
                 }
 
+                let padKey = "\(pad.bank)_\(pad.padIndex)"
                 DispatchQueue.main.async {
-                    appState.activeDrumPadIndices.insert(pad.padIndex)
+                    appState.activeDrumPadKeys.insert(padKey)
                     for n in notesToPlay {
                         appState.activeNotes.insert(n)
                     }
@@ -241,7 +255,7 @@ public final class KeyboardMonitor {
                             self.pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
                             appState.activeNotes.remove(n)
                         }
-                        appState.activeDrumPadIndices.remove(pad.padIndex)
+                        appState.activeDrumPadKeys.remove(padKey)
                     }
                 }
                 return true
@@ -296,11 +310,11 @@ public final class KeyboardMonitor {
             }
 
             if appState.mode == .drumGrid {
-                let bank = appState.octave
-                for pIdx in 0..<16 {
-                    if let cfg = appState.drumPadConfig(bank: bank, padIndex: pIdx), cfg.matches(event: event) {
+                for (_, cfg) in appState.activeProfile.drumPads {
+                    if cfg.matches(event: event) {
+                        let padKey = "\(cfg.bank)_\(cfg.padIndex)"
                         DispatchQueue.main.async {
-                            appState.activeDrumPadIndices.remove(pIdx)
+                            appState.activeDrumPadKeys.remove(padKey)
                         }
                     }
                 }
@@ -338,6 +352,7 @@ public final class KeyboardMonitor {
         pipeline.allNotesOff(channel: appState.channel, destinationUID: appState.selectedDestinationUID)
         DispatchQueue.main.async {
             appState.activeNotes.removeAll()
+            appState.activeDrumPadKeys.removeAll()
         }
     }
 

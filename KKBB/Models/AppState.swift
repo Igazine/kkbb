@@ -23,7 +23,7 @@ public final class AppState {
         didSet {
             defaults.set(mode.rawValue, forKey: "kkbb.mode")
             KeyboardMonitor.shared.allNotesOff()
-            activeDrumPadIndices.removeAll()
+            activeDrumPadKeys.removeAll()
         }
     }
 
@@ -46,10 +46,6 @@ public final class AppState {
     public var octave: Int {
         didSet {
             defaults.set(octave, forKey: "kkbb.octave")
-            if mode == .drumGrid {
-                KeyboardMonitor.shared.allNotesOff()
-                activeDrumPadIndices.removeAll()
-            }
         }
     }
 
@@ -84,7 +80,11 @@ public final class AppState {
     }
 
     public var activeChordPadIndex: Int? = nil
-    public var activeDrumPadIndices: Set<Int> = []
+    public var activeDrumPadKeys: Set<String> = [] // Elements are "\(bank)_\(padIndex)"
+
+    public func isDrumPadActive(bank: Int, padIndex: Int) -> Bool {
+        activeDrumPadKeys.contains("\(bank)_\(padIndex)")
+    }
 
     public var activeChordType: ChordType? {
         guard let idx = activeChordPadIndex,
@@ -177,7 +177,8 @@ public final class AppState {
         guard !notes.isEmpty else { return }
         let vel = velocityOverride ?? UInt8(velocity)
 
-        activeDrumPadIndices.insert(padIndex)
+        let padKey = "\(bank)_\(padIndex)"
+        activeDrumPadKeys.insert(padKey)
 
         for note in notes {
             MIDIPipeline.shared.sendNoteOn(
@@ -196,12 +197,13 @@ public final class AppState {
     }
 
     public func triggerDrumPadOff(bank: Int, padIndex: Int) {
+        let padKey = "\(bank)_\(padIndex)"
         guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else {
-            activeDrumPadIndices.remove(padIndex)
+            activeDrumPadKeys.remove(padKey)
             return
         }
         let notes = config.notesToSend
-        activeDrumPadIndices.remove(padIndex)
+        activeDrumPadKeys.remove(padKey)
 
         for note in notes {
             MIDIPipeline.shared.sendNoteOff(
