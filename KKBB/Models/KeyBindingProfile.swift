@@ -33,6 +33,39 @@ public struct CCKeyBinding: Identifiable, Codable, Hashable {
     }
 }
 
+public struct KnobConfig: Identifiable, Codable, Hashable {
+    public var id: UUID
+    public var label: String
+    public var controller: UInt8 // 0...127
+    public var value: UInt8 // 0...127
+    public var defaultValue: UInt8 // 0...127
+
+    public init(
+        id: UUID = UUID(),
+        label: String,
+        controller: UInt8,
+        value: UInt8 = 0,
+        defaultValue: UInt8 = 0
+    ) {
+        self.id = id
+        self.label = label
+        self.controller = controller
+        self.value = value
+        self.defaultValue = defaultValue
+    }
+
+    public static let defaultKnobs: [KnobConfig] = [
+        KnobConfig(label: "MOD", controller: 1, value: 0, defaultValue: 0),
+        KnobConfig(label: "BREATH", controller: 2, value: 0, defaultValue: 0),
+        KnobConfig(label: "VOL", controller: 7, value: 100, defaultValue: 100),
+        KnobConfig(label: "PAN", controller: 10, value: 64, defaultValue: 64),
+        KnobConfig(label: "EXPR", controller: 11, value: 127, defaultValue: 127),
+        KnobConfig(label: "RESO", controller: 71, value: 64, defaultValue: 64),
+        KnobConfig(label: "CUTOFF", controller: 74, value: 64, defaultValue: 64),
+        KnobConfig(label: "REVERB", controller: 91, value: 0, defaultValue: 0)
+    ]
+}
+
 public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public var id: UUID
     public var name: String
@@ -41,6 +74,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public var twoOctaveNoteMap: [String: Int]
     public var ccBindings: [CCKeyBinding]
     public var mouseVerticalVelocityEnabled: Bool
+    public var knobs: [KnobConfig]
 
     public var isDefault: Bool {
         return isReadOnly
@@ -53,7 +87,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         oneOctaveNoteMap: [String: Int],
         twoOctaveNoteMap: [String: Int],
         ccBindings: [CCKeyBinding] = [],
-        mouseVerticalVelocityEnabled: Bool = true
+        mouseVerticalVelocityEnabled: Bool = true,
+        knobs: [KnobConfig] = KnobConfig.defaultKnobs
     ) {
         self.id = id
         self.name = name
@@ -62,6 +97,23 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.twoOctaveNoteMap = twoOctaveNoteMap
         self.ccBindings = ccBindings
         self.mouseVerticalVelocityEnabled = mouseVerticalVelocityEnabled
+        self.knobs = knobs
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.isReadOnly = try container.decodeIfPresent(Bool.self, forKey: .isReadOnly) ?? false
+        self.oneOctaveNoteMap = try container.decode([String: Int].self, forKey: .oneOctaveNoteMap)
+        self.twoOctaveNoteMap = try container.decode([String: Int].self, forKey: .twoOctaveNoteMap)
+        self.ccBindings = try container.decodeIfPresent([CCKeyBinding].self, forKey: .ccBindings) ?? []
+        self.mouseVerticalVelocityEnabled = try container.decodeIfPresent(Bool.self, forKey: .mouseVerticalVelocityEnabled) ?? true
+        self.knobs = try container.decodeIfPresent([KnobConfig].self, forKey: .knobs) ?? KnobConfig.defaultKnobs
     }
 
     public static let defaultProfile: KeyBindingProfile = {
@@ -95,7 +147,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
             oneOctaveNoteMap: oneOctave,
             twoOctaveNoteMap: twoOctave,
             ccBindings: defaultCCs,
-            mouseVerticalVelocityEnabled: true
+            mouseVerticalVelocityEnabled: true,
+            knobs: KnobConfig.defaultKnobs
         )
     }()
 }

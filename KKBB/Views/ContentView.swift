@@ -21,6 +21,10 @@ struct ContentView: View {
 
                     Divider()
 
+                    KnobsStripView(appState: appState)
+
+                    Divider()
+
                     PianoRollView(appState: appState)
                         .frame(minHeight: 120, maxHeight: .infinity)
                 }
@@ -32,7 +36,7 @@ struct ContentView: View {
                 }
             )
         }
-        .frame(minWidth: 720, minHeight: 220)
+        .frame(minWidth: 720, minHeight: 285)
         .sheet(isPresented: $showSettings) {
             SettingsView(appState: appState)
         }

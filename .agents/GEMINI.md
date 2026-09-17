@@ -26,6 +26,13 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * Octave Selector Bar:
 * * 7 rounded blocks positioned directly above the piano keys representing Octaves 0 to 6
 * * Clicking selects the octave; active octave is highlighted in accent blue
+* Assignable Knobs Strip:
+* * 8 rotary knobs positioned directly above the piano roll (below octave selector)
+* * Controls arbitrary MIDI Continuous Controllers (CC 0–127)
+* * 270° rotary sweep (value 0 at bottom-left, 127 at bottom-right) with circular active track and rotary indicator tick
+* * Vertical mouse drag adjustment (drag up to increase, down to decrease); Shift key enables 4x fine-tuning precision
+* * Double-click to snap back to default value
+* * Right-click context menu to select common CC presets (Modulation, Breath, Volume, Pan, Expression, Resonance, Cutoff, Reverb, etc.), custom CC assignment with custom labels, or reset to default
 * Piano Roll at the bottom. White and Black keys according to a regular piano layout
 * * In 1-octave mode, the piano roll shows one octave
 * * In 2-octave mode, the piano roll shows two octaves + top C

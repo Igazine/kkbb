@@ -25,6 +25,8 @@
 		10000016 /* PitchModWheelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000016 /* PitchModWheelsView.swift */; };
 		10000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000017 /* SettingsView.swift */; };
 		10000018 /* OctaveBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000018 /* OctaveBarView.swift */; };
+		10000019 /* RotaryKnobView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000019 /* RotaryKnobView.swift */; };
+		10000020 /* KnobsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000020 /* KnobsStripView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +49,8 @@
 		20000016 /* PitchModWheelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchModWheelsView.swift; sourceTree = "<group>"; };
 		20000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		20000018 /* OctaveBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaveBarView.swift; sourceTree = "<group>"; };
+		20000019 /* RotaryKnobView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryKnobView.swift; sourceTree = "<group>"; };
+		20000020 /* KnobsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnobsStripView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +126,8 @@
 				20000008 /* PianoRollView.swift */,
 				20000016 /* PitchModWheelsView.swift */,
 				20000017 /* SettingsView.swift */,
+				20000019 /* RotaryKnobView.swift */,
+				20000020 /* KnobsStripView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -226,6 +232,8 @@
 				10000008 /* PianoRollView.swift in Sources */,
 				10000016 /* PitchModWheelsView.swift in Sources */,
 				10000017 /* SettingsView.swift in Sources */,
+				10000019 /* RotaryKnobView.swift in Sources */,
+				10000020 /* KnobsStripView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

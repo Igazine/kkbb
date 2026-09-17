@@ -148,11 +148,37 @@ public final class AppState {
             oneOctaveNoteMap: base.oneOctaveNoteMap,
             twoOctaveNoteMap: base.twoOctaveNoteMap,
             ccBindings: base.ccBindings,
-            mouseVerticalVelocityEnabled: base.mouseVerticalVelocityEnabled
+            mouseVerticalVelocityEnabled: base.mouseVerticalVelocityEnabled,
+            knobs: base.knobs
         )
         userProfiles.append(newProfile)
         selectProfile(newProfile)
         saveProfiles()
+    }
+
+    public func updateKnobValue(index: Int, value: UInt8) {
+        guard index >= 0 && index < activeProfile.knobs.count else { return }
+        activeProfile.knobs[index].value = value
+        let knob = activeProfile.knobs[index]
+        MIDIPipeline.shared.sendCC(
+            controller: knob.controller,
+            value: value,
+            channel: channel,
+            destinationUID: selectedDestinationUID
+        )
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        }
+    }
+
+    public func updateKnobConfig(index: Int, label: String, controller: UInt8, defaultValue: UInt8) {
+        guard index >= 0 && index < activeProfile.knobs.count else { return }
+        activeProfile.knobs[index].label = label
+        activeProfile.knobs[index].controller = controller
+        activeProfile.knobs[index].defaultValue = defaultValue
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        }
     }
 
     public func deleteProfile(id: UUID) {
