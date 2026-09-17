@@ -31,6 +31,10 @@ struct TopBarView: View {
                         ForEach(appState.availableDestinations) { dest in
                             Text(dest.name).tag(Int32?.some(dest.id))
                         }
+                        if let selectedUID = appState.selectedDestinationUID,
+                           !appState.availableDestinations.contains(where: { $0.id == selectedUID }) {
+                            Text("Offline Device (Saved)").tag(Int32?.some(selectedUID))
+                        }
                     }
                     .labelsHidden()
                     .frame(minWidth: 160)
