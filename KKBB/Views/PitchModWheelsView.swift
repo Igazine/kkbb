@@ -22,6 +22,7 @@ public struct PitchModWheelsView: View {
                 VStack(spacing: 2) {
                     Text("VEL")
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .lineLimit(1)
                         .foregroundStyle(.secondary)
 
                     ZStack(alignment: .bottom) {
@@ -83,8 +84,9 @@ public struct PitchModWheelsView: View {
 
                 // MARK: - Pitch Bend Wheel (Spring-loaded to center)
                 VStack(spacing: 2) {
-                    Text("PITCH")
+                    Text("PTCH")
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .lineLimit(1)
                         .foregroundStyle(.secondary)
 
                     ZStack {
@@ -171,6 +173,7 @@ public struct PitchModWheelsView: View {
                 VStack(spacing: 2) {
                     Text("MOD")
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .lineLimit(1)
                         .foregroundStyle(.secondary)
 
                     ZStack(alignment: .bottom) {
