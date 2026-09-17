@@ -25,12 +25,17 @@ struct ContentView: View {
 
                     Divider()
 
-                    PianoRollView(appState: appState)
-                        .frame(minHeight: 120, maxHeight: .infinity)
+                    if appState.mode == .drumGrid {
+                        DrumPadGridView(appState: appState)
+                            .frame(minHeight: 160, maxHeight: .infinity)
+                    } else {
+                        PianoRollView(appState: appState)
+                            .frame(minHeight: 120, maxHeight: .infinity)
 
-                    Divider()
+                        Divider()
 
-                    ChordPadsStripView(appState: appState)
+                        ChordPadsStripView(appState: appState)
+                    }
                 }
             }
             .focusable(false)

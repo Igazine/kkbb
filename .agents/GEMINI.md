@@ -51,6 +51,13 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Right-click context menu to choose voicing: "No Chord (Single Note)", 14 standard Chords (Major, Minor, 7th, Maj7, Min7, Half-Dim, etc.), or 20 Bitwig Scales & Modes (Pentatonic, Blues, Dorian, Mixolydian, Harmonic, etc.)
 * * Transposition: playing any note key (or clicking a piano roll key) transmits all chord notes transposed to that root
 * * Polyphonic illumination: piano roll illuminates all notes comprising the triggered chord
+* Alternate Layout (4x4 Drum / Pad Grid):
+* * Selectable via Mode dropdown ("4x4 Grid"); replaces the piano roll and chord pads with an MPC-style 4x4 performance grid
+* * 7 Banks navigation: the octave selector acts as Bank 0–6 selector (navigated via click or `*` / `/` shortcuts), offering 7 × 16 = 112 totally independent pads
+* * Fully customizable pads: right-click context menu assigns Hot-Key (interactive recording sheet), Root Note (C to B), Octave (0 to 6), and Chord Voicing (No Chord, 14 standard chords, 20 Bitwig scales)
+* * Pad labels show assigned Key combination, Note + Octave (e.g. C1), and Chord badge (e.g. m7); unassigned pads display empty
+* * Visual Feedback: Active pad glows in accent blue upon physical keyboard press or mouse trigger
+* * Mode Isolation: When in 4x4 Grid mode, piano roll keyboard triggers are bypassed; when in piano modes, drum grid triggers are bypassed
 
 ## Tech Stack
 

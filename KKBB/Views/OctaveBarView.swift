@@ -31,12 +31,16 @@ public struct OctaveBarView: View {
                                         lineWidth: 0.5
                                     )
                             )
+
+                        Text(appState.mode == .drumGrid ? "Bank \(octaveIndex)" : "\(octaveIndex)")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(isSelected ? Color.white : Color.secondary)
                     }
                     .frame(height: 20)
                 }
                 .buttonStyle(.plain)
                 .focusable(false)
-                .help("Octave C\(octaveIndex)")
+                .help(appState.mode == .drumGrid ? "Bank \(octaveIndex) (Pads 1–16)" : "Octave C\(octaveIndex)")
             }
         }
         .focusable(false)

@@ -168,8 +168,9 @@ public final class KeyboardMonitor {
                 return true
             }
 
-            // Check if this key matches any Chord Pad hot-key
-            if let padIndex = appState.activeProfile.chordPads.firstIndex(where: { $0.matches(event: event) }) {
+            // Check if this key matches any Chord Pad hot-key (only in piano modes)
+            if appState.mode != .drumGrid,
+               let padIndex = appState.activeProfile.chordPads.firstIndex(where: { $0.matches(event: event) }) {
                 DispatchQueue.main.async {
                     appState.toggleChordPad(index: padIndex)
                 }
@@ -199,6 +200,50 @@ public final class KeyboardMonitor {
 
             // Check if this key is already pressed for note
             if pressedKeyToNotes[event.keyCode] != nil {
+                return true
+            }
+
+            // In Drum Grid mode: check active bank pads
+            if appState.mode == .drumGrid {
+                let bank = appState.octave
+                var matchedPad: DrumPadConfig? = nil
+                for pIdx in 0..<16 {
+                    if let cfg = appState.drumPadConfig(bank: bank, padIndex: pIdx), cfg.matches(event: event) && cfg.isAssigned {
+                        matchedPad = cfg
+                        break
+                    }
+                }
+
+                guard let pad = matchedPad else { return false }
+                let notesToPlay = pad.notesToSend
+                guard !notesToPlay.isEmpty else { return false }
+
+                pressedKeyToNotes[event.keyCode] = notesToPlay
+                let velocity = UInt8(appState.velocity)
+                let channel = appState.channel
+                let destUID = appState.selectedDestinationUID
+
+                for n in notesToPlay {
+                    pipeline.sendNoteOn(note: n, velocity: velocity, channel: channel, destinationUID: destUID)
+                }
+
+                DispatchQueue.main.async {
+                    appState.activeDrumPadIndices.insert(pad.padIndex)
+                    for n in notesToPlay {
+                        appState.activeNotes.insert(n)
+                    }
+                }
+
+                if appState.isOneShotMode {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self, weak appState] in
+                        guard let self = self, let appState = appState else { return }
+                        for n in notesToPlay {
+                            self.pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
+                            appState.activeNotes.remove(n)
+                        }
+                        appState.activeDrumPadIndices.remove(pad.padIndex)
+                    }
+                }
                 return true
             }
 
@@ -248,6 +293,17 @@ public final class KeyboardMonitor {
             // Check if this key was playing notes
             guard let notes = pressedKeyToNotes.removeValue(forKey: event.keyCode) else {
                 return false
+            }
+
+            if appState.mode == .drumGrid {
+                let bank = appState.octave
+                for pIdx in 0..<16 {
+                    if let cfg = appState.drumPadConfig(bank: bank, padIndex: pIdx), cfg.matches(event: event) {
+                        DispatchQueue.main.async {
+                            appState.activeDrumPadIndices.remove(pIdx)
+                        }
+                    }
+                }
             }
 
             if !appState.isOneShotMode {
@@ -305,6 +361,8 @@ public final class KeyboardMonitor {
                 let finalNote = Int(baseNote) + semitone
                 return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
             }
+        case .drumGrid:
+            return nil
         }
         return nil
     }

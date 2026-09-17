@@ -22,6 +22,8 @@ public final class AppState {
     public var mode: KeyboardMode {
         didSet {
             defaults.set(mode.rawValue, forKey: "kkbb.mode")
+            KeyboardMonitor.shared.allNotesOff()
+            activeDrumPadIndices.removeAll()
         }
     }
 
@@ -44,6 +46,10 @@ public final class AppState {
     public var octave: Int {
         didSet {
             defaults.set(octave, forKey: "kkbb.octave")
+            if mode == .drumGrid {
+                KeyboardMonitor.shared.allNotesOff()
+                activeDrumPadIndices.removeAll()
+            }
         }
     }
 
@@ -78,6 +84,7 @@ public final class AppState {
     }
 
     public var activeChordPadIndex: Int? = nil
+    public var activeDrumPadIndices: Set<Int> = []
 
     public var activeChordType: ChordType? {
         guard let idx = activeChordPadIndex,
@@ -133,6 +140,76 @@ public final class AppState {
     private func saveDefaultCustomKeyChords() {
         if let encoded = try? JSONEncoder().encode(activeProfile.customKeyChords) {
             defaults.set(encoded, forKey: "kkbb.defaultCustomKeyChords")
+        }
+    }
+
+    // MARK: - Drum Pad Management
+    public func drumPadConfig(bank: Int, padIndex: Int) -> DrumPadConfig? {
+        let key = "\(bank)_\(padIndex)"
+        return activeProfile.drumPads[key]
+    }
+
+    public func updateDrumPadConfig(_ config: DrumPadConfig) {
+        let key = "\(config.bank)_\(config.padIndex)"
+        activeProfile.drumPads[key] = config
+        saveDrumPads()
+    }
+
+    public func clearDrumPad(bank: Int, padIndex: Int) {
+        let key = "\(bank)_\(padIndex)"
+        activeProfile.drumPads.removeValue(forKey: key)
+        saveDrumPads()
+    }
+
+    private func saveDrumPads() {
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            if let encoded = try? JSONEncoder().encode(activeProfile.drumPads) {
+                defaults.set(encoded, forKey: "kkbb.defaultDrumPads")
+            }
+        }
+    }
+
+    public func triggerDrumPadOn(bank: Int, padIndex: Int, velocityOverride: UInt8? = nil) {
+        guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else { return }
+        let notes = config.notesToSend
+        guard !notes.isEmpty else { return }
+        let vel = velocityOverride ?? UInt8(velocity)
+
+        activeDrumPadIndices.insert(padIndex)
+
+        for note in notes {
+            MIDIPipeline.shared.sendNoteOn(
+                note: note,
+                velocity: vel,
+                channel: channel,
+                destinationUID: selectedDestinationUID
+            )
+        }
+
+        if isOneShotMode {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                self?.triggerDrumPadOff(bank: bank, padIndex: padIndex)
+            }
+        }
+    }
+
+    public func triggerDrumPadOff(bank: Int, padIndex: Int) {
+        guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else {
+            activeDrumPadIndices.remove(padIndex)
+            return
+        }
+        let notes = config.notesToSend
+        activeDrumPadIndices.remove(padIndex)
+
+        for note in notes {
+            MIDIPipeline.shared.sendNoteOff(
+                note: note,
+                velocity: 0,
+                channel: channel,
+                destinationUID: selectedDestinationUID
+            )
         }
     }
 
@@ -199,6 +276,10 @@ public final class AppState {
             if let chordData = defaults.data(forKey: "kkbb.defaultCustomKeyChords"),
                let customChords = try? JSONDecoder().decode([UInt8: String].self, from: chordData) {
                 defaultProf.customKeyChords = customChords
+            }
+            if let drumData = defaults.data(forKey: "kkbb.defaultDrumPads"),
+               let customDrums = try? JSONDecoder().decode([String: DrumPadConfig].self, from: drumData) {
+                defaultProf.drumPads = customDrums
             }
             self.activeProfile = defaultProf
         }

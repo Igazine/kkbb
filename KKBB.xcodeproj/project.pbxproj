@@ -29,6 +29,8 @@
 		10000020 /* KnobsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000020 /* KnobsStripView.swift */; };
 		10000021 /* ChordType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000021 /* ChordType.swift */; };
 		10000022 /* ChordPadsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000022 /* ChordPadsStripView.swift */; };
+		10000023 /* DrumPadConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000023 /* DrumPadConfig.swift */; };
+		10000024 /* DrumPadGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000024 /* DrumPadGridView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +57,8 @@
 		20000020 /* KnobsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnobsStripView.swift; sourceTree = "<group>"; };
 		20000021 /* ChordType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordType.swift; sourceTree = "<group>"; };
 		20000022 /* ChordPadsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordPadsStripView.swift; sourceTree = "<group>"; };
+		20000023 /* DrumPadConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadConfig.swift; sourceTree = "<group>"; };
+		20000024 /* DrumPadGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadGridView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +103,7 @@
 				20000004 /* AppState.swift */,
 				20000015 /* KeyBindingProfile.swift */,
 				20000021 /* ChordType.swift */,
+				20000023 /* DrumPadConfig.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -134,6 +139,7 @@
 				20000019 /* RotaryKnobView.swift */,
 				20000020 /* KnobsStripView.swift */,
 				20000022 /* ChordPadsStripView.swift */,
+				20000024 /* DrumPadGridView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -242,6 +248,8 @@
 				10000020 /* KnobsStripView.swift in Sources */,
 				10000021 /* ChordType.swift in Sources */,
 				10000022 /* ChordPadsStripView.swift in Sources */,
+				10000023 /* DrumPadConfig.swift in Sources */,
+				10000024 /* DrumPadGridView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
