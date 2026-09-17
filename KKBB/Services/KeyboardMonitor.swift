@@ -1,10 +1,12 @@
 import AppKit
 import Foundation
+import Carbon
 
 public final class KeyboardMonitor {
     public static let shared = KeyboardMonitor()
 
     private var localMonitor: Any?
+    private var hotKeyModeToken: UnsafeMutableRawPointer?
     private var pressedKeyToNotes: [UInt16: [UInt8]] = [:]
     private var pressedKeyToCC: [UInt16: CCKeyBinding] = [:]
     private var activeCCToggleStates: [UUID: Bool] = [:]
@@ -13,9 +15,23 @@ public final class KeyboardMonitor {
 
     private init() {}
 
+    public var isAccessibilityTrusted: Bool {
+        AXIsProcessTrusted()
+    }
+
     public func start(with appState: AppState) {
         self.appState = appState
         guard localMonitor == nil else { return }
+
+        enableSystemHotKeySuppression()
+
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.enableSystemHotKeySuppression()
+        }
 
         // Release hanging notes when window or app loses focus
         NotificationCenter.default.addObserver(
@@ -23,6 +39,7 @@ public final class KeyboardMonitor {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            self?.disableSystemHotKeySuppression()
             self?.allNotesOff()
         }
 
@@ -40,8 +57,23 @@ public final class KeyboardMonitor {
             NSEvent.removeMonitor(monitor)
             localMonitor = nil
         }
+        disableSystemHotKeySuppression()
+        NotificationCenter.default.removeObserver(self, name: NSApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: NSApplication.didResignActiveNotification, object: nil)
         allNotesOff()
+    }
+
+    private func enableSystemHotKeySuppression() {
+        guard hotKeyModeToken == nil else { return }
+        // 1 = kHIHotKeyModeAllDisabled (suppresses Mission Control, Show Desktop F11, etc. when focused)
+        hotKeyModeToken = PushSymbolicHotKeyMode(1)
+    }
+
+    private func disableSystemHotKeySuppression() {
+        if let token = hotKeyModeToken {
+            PopSymbolicHotKeyMode(token)
+            hotKeyModeToken = nil
+        }
     }
 
     private func handleEvent(_ event: NSEvent) -> Bool {

@@ -582,6 +582,24 @@ struct SettingsView: View {
                 .controlSize(.small)
             }
 
+            if !KeyboardMonitor.shared.isAccessibilityTrusted {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(.secondary)
+                        .font(.body)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("macOS System Hot-Keys Notice")
+                            .font(.caption.bold())
+                        Text("macOS reserves F11 for 'Show Desktop' by default. To let KKBB capture F11, either uncheck 'Show Desktop' in System Settings > Keyboard > Keyboard Shortcuts > Mission Control, or grant Accessibility access to KKBB in Privacy & Security.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(8)
+                .background(Color.secondary.opacity(0.08))
+                .cornerRadius(6)
+            }
+
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     ForEach(Array(appState.activeProfile.chordPads.enumerated()), id: \.element.id) { idx, pad in
