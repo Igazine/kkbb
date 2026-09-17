@@ -202,8 +202,8 @@ public final class KeyboardMonitor {
                 }
 
                 if let pad = matchedPad {
-                    // Check if this pad is assigned to a MIDI Command (Transport / Panic)
-                    if pad.midiCommand != nil {
+                    // Check if this pad is assigned to a MIDI Command (Transport / Panic) or CC Button
+                    if pad.midiCommand != nil || pad.ccConfig != nil {
                         DispatchQueue.main.async {
                             appState.triggerDrumPadOn(bank: pad.bank, padIndex: pad.padIndex)
                         }
@@ -303,23 +303,12 @@ public final class KeyboardMonitor {
             return true
 
         } else if event.type == .keyUp {
-            // Check if this key was triggering a momentary CC
-            if let ccBinding = pressedKeyToCC.removeValue(forKey: event.keyCode) {
-                if ccBinding.mode == .momentary {
-                    let channel = appState.channel
-                    let destUID = appState.selectedDestinationUID
-                    pipeline.sendCC(controller: ccBinding.controller, value: 0, channel: channel, destinationUID: destUID)
-                    return true
-                }
-            }
-
             if appState.mode == .drumGrid {
                 var handledDrumPad = false
                 for (_, cfg) in appState.activeProfile.drumPads {
                     if cfg.matches(event: event) {
-                        let padKey = "\(cfg.bank)_\(cfg.padIndex)"
                         DispatchQueue.main.async {
-                            appState.activeDrumPadKeys.remove(padKey)
+                            appState.triggerDrumPadOff(bank: cfg.bank, padIndex: cfg.padIndex)
                         }
                         handledDrumPad = true
                     }
@@ -345,7 +334,16 @@ public final class KeyboardMonitor {
                 if handledDrumPad {
                     return true
                 }
-                return false
+            }
+
+            // Check if this key was triggering a momentary CC
+            if let ccBinding = pressedKeyToCC.removeValue(forKey: event.keyCode) {
+                if ccBinding.mode == .momentary {
+                    let channel = appState.channel
+                    let destUID = appState.selectedDestinationUID
+                    pipeline.sendCC(controller: ccBinding.controller, value: 0, channel: channel, destinationUID: destUID)
+                    return true
+                }
             }
 
             // Check if this key was playing notes

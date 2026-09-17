@@ -55,10 +55,11 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Selectable via Mode dropdown ("4x4 Grid"); replaces the piano roll and chord pads with an MPC-style 4x4 performance grid
 * * 7 Banks navigation: the octave selector acts as Bank 0–6 selector (navigated via click or `*` / `/` shortcuts), offering 7 × 16 = 112 totally independent pads
 * * Cross-Bank Playback: Switching banks changes the visible 16 pads, but all 112 pads across all 7 banks remain actively triggerable by their assigned hot-keys without being disabled
-* * Fully customizable pads: right-click context menu assigns Hot-Key (interactive recording sheet), Root Note (C to B), Octave (0 to 6), Chord Voicing (No Chord, 14 standard chords, 20 Bitwig scales), or MIDI Command (Transport & Utilities)
+* * Fully customizable pads: right-click context menu assigns Hot-Key (interactive recording sheet), Root Note (C to B), Octave (0 to 6), Chord Voicing (No Chord, 14 standard chords, 20 Bitwig scales), MIDI Command (Transport & Utilities), or MIDI Control Change (CC)
 * * MIDI Commands: Pads can be assigned to standardized System Real-Time transport (Start 0xFA, Stop 0xFC, Continue 0xFB), MMC SysEx transport (Play, Stop, Pause, Record, Rewind, Fast Forward), or All Notes Off (Panic); command pads trigger one-shot commands via virtual source and active destination endpoint with momentary pad flash
-* * Pad labels show assigned Key combination, Note + Octave (e.g. C1) or Command Badge (e.g. ▶ PLAY, ■ STOP, ❚❚ PAUSE, ● REC), and Chord or Command Category badge (e.g. REALTIME, MMC, SYS); unassigned pads display empty
-* * Visual Feedback: Active pad glows in accent blue upon physical keyboard press or mouse trigger
+* * MIDI Control Change (CC) Buttons: Pads can be assigned to popular CC presets (Sustain Momentary, Sustain Toggle, Mod Wheel Full, Expression Full, Volume Full, Volume Mute, All Sound Off, Panic CC) or custom CC configurations with user-defined Controller # (0–127), On/Trigger value (0–127), Off value (0–127), Mode (Momentary, Toggle, Trigger), and custom labels (e.g. MUTE, FILTER, SUSTAIN)
+* * Pad labels show assigned Key combination, Note + Octave (e.g. C1), Command Badge (e.g. ▶ PLAY, ■ STOP, ❚❚ PAUSE, ● REC), or CC Label (e.g. CC 64, SUSTAIN), along with sub-badge (e.g. m7, REALTIME, MMC, SYS, CC·MOM, CC·TOG, CC·TRG); unassigned pads display empty
+* * Visual Feedback: Active pad glows in accent blue upon physical keyboard press, mouse trigger, or when locked in CC Toggle ON state
 * * Mode Isolation: When in 4x4 Grid mode, piano roll keyboard triggers are bypassed; when in piano modes, drum grid triggers are bypassed
 
 ## Tech Stack

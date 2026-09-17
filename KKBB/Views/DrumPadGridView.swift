@@ -13,6 +13,15 @@ public struct DrumPadGridView: View {
     @State private var recordedKeyCode: UInt16? = nil
     @State private var recordedModifiers: UInt? = nil
 
+    // State for custom CC sheet
+    @State private var configuringCCPadIndex: Int? = nil
+    @State private var showCCConfigSheet: Bool = false
+    @State private var customCCController: String = "64"
+    @State private var customCCValue: String = "127"
+    @State private var customCCOffValue: String = "0"
+    @State private var customCCMode: CCBindingMode = .momentary
+    @State private var customCCLabel: String = ""
+
     public init(appState: AppState) {
         self.appState = appState
     }
@@ -40,6 +49,9 @@ public struct DrumPadGridView: View {
         .clipped()
         .sheet(isPresented: $showKeyRecorder) {
             keyRecorderSheet
+        }
+        .sheet(isPresented: $showCCConfigSheet) {
+            customCCSheet
         }
     }
 
@@ -94,8 +106,14 @@ public struct DrumPadGridView: View {
 
                 Spacer(minLength: 1)
 
-                // Center: MIDI Command, Note & Octave, or Unassigned marker
-                if let cmd = config?.midiCommand {
+                // Center: CC Button, MIDI Command, Note & Octave, or Unassigned marker
+                if let cc = config?.ccConfig {
+                    Text(cc.displayLabel)
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .foregroundStyle(isActive ? Color.white : Color.primary)
+                        .minimumScaleFactor(0.65)
+                        .lineLimit(1)
+                } else if let cmd = config?.midiCommand {
                     Text(cmd.padBadge)
                         .font(.system(size: 13, weight: .black, design: .rounded))
                         .foregroundStyle(isActive ? Color.white : Color.primary)
@@ -115,8 +133,20 @@ public struct DrumPadGridView: View {
 
                 Spacer(minLength: 1)
 
-                // Bottom: Command category badge or Chord badge if assigned
-                if let cmd = config?.midiCommand {
+                // Bottom: CC badge, Command category badge, or Chord badge if assigned
+                if let cc = config?.ccConfig {
+                    Text(cc.displayBadge)
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(isActive ? Color.white.opacity(0.25) : Color.secondary.opacity(0.12))
+                        )
+                        .foregroundStyle(isActive ? Color.white.opacity(0.9) : Color.secondary.opacity(0.7))
+                        .lineLimit(1)
+                        .padding(.bottom, 3)
+                } else if let cmd = config?.midiCommand {
                     Text(cmd.category == .realTime ? "REALTIME" : (cmd.category == .mmc ? "MMC" : "SYS"))
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
                         .padding(.horizontal, 4)
@@ -205,10 +235,11 @@ public struct DrumPadGridView: View {
         Menu("Root Note") {
             ForEach(0..<DrumPadConfig.noteNames.count, id: \.self) { semitone in
                 let noteName = DrumPadConfig.noteNames[semitone]
-                let isCurrent = config?.semitone == UInt8(semitone) && config?.midiCommand == nil
+                let isCurrent = config?.semitone == UInt8(semitone) && config?.midiCommand == nil && config?.ccConfig == nil
                 Button {
                     var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
                     current.midiCommand = nil
+                    current.ccConfig = nil
                     current.semitone = UInt8(semitone)
                     if current.octave == nil { current.octave = 3 }
                     appState.updateDrumPadConfig(current)
@@ -225,10 +256,11 @@ public struct DrumPadGridView: View {
         // Octave Submenu (0 to 6)
         Menu("Octave") {
             ForEach(0...6, id: \.self) { oct in
-                let isCurrent = config?.octave == oct && config?.midiCommand == nil
+                let isCurrent = config?.octave == oct && config?.midiCommand == nil && config?.ccConfig == nil
                 Button {
                     var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
                     current.midiCommand = nil
+                    current.ccConfig = nil
                     current.octave = oct
                     if current.semitone == nil { current.semitone = 0 }
                     appState.updateDrumPadConfig(current)
@@ -254,7 +286,7 @@ public struct DrumPadGridView: View {
                     appState.updateDrumPadConfig(current)
                 }
             } label: {
-                if (activeChordID == "none" || activeChordID.isEmpty) && config?.midiCommand == nil {
+                if (activeChordID == "none" || activeChordID.isEmpty) && config?.midiCommand == nil && config?.ccConfig == nil {
                     Label("No Chord (Single Note)", systemImage: "checkmark")
                 } else {
                     Text("No Chord (Single Note)")
@@ -263,10 +295,11 @@ public struct DrumPadGridView: View {
 
             Menu("Chords") {
                 ForEach(ChordType.allTypes.filter { $0.category == .chords && $0.id != "none" }) { chord in
-                    let isSel = activeChordID == chord.id && config?.midiCommand == nil
+                    let isSel = activeChordID == chord.id && config?.midiCommand == nil && config?.ccConfig == nil
                     Button {
                         var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
                         current.midiCommand = nil
+                        current.ccConfig = nil
                         if current.semitone == nil { current.semitone = 0 }
                         if current.octave == nil { current.octave = 3 }
                         current.chordTypeID = chord.id
@@ -283,10 +316,11 @@ public struct DrumPadGridView: View {
 
             Menu("Bitwig Scales & Modes") {
                 ForEach(ChordType.allTypes.filter { $0.category == .scales }) { scale in
-                    let isSel = activeChordID == scale.id && config?.midiCommand == nil
+                    let isSel = activeChordID == scale.id && config?.midiCommand == nil && config?.ccConfig == nil
                     Button {
                         var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
                         current.midiCommand = nil
+                        current.ccConfig = nil
                         if current.semitone == nil { current.semitone = 0 }
                         if current.octave == nil { current.octave = 3 }
                         current.chordTypeID = scale.id
@@ -315,9 +349,9 @@ public struct DrumPadGridView: View {
                 }
             } label: {
                 if activeCmd == nil {
-                    Label("None (Note / Chord Mode)", systemImage: "checkmark")
+                    Label("None (Note / CC Mode)", systemImage: "checkmark")
                 } else {
-                    Text("None (Note / Chord Mode)")
+                    Text("None (Note / CC Mode)")
                 }
             }
 
@@ -330,6 +364,7 @@ public struct DrumPadGridView: View {
                         Button {
                             var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
                             current.midiCommand = cmd
+                            current.ccConfig = nil
                             current.semitone = nil
                             current.octave = nil
                             current.chordTypeID = nil
@@ -343,6 +378,73 @@ public struct DrumPadGridView: View {
                         }
                     }
                 }
+            }
+        }
+
+        Divider()
+
+        // MIDI Control Change (CC) Submenu
+        Menu("MIDI Control Change (CC)") {
+            let activeCC = config?.ccConfig
+
+            Button {
+                if var current = config {
+                    current.ccConfig = nil
+                    appState.updateDrumPadConfig(current)
+                }
+            } label: {
+                if activeCC == nil {
+                    Label("None (Note / Command Mode)", systemImage: "checkmark")
+                } else {
+                    Text("None (Note / Command Mode)")
+                }
+            }
+
+            Divider()
+
+            Menu("Presets") {
+                Button("Sustain Pedal (CC 64 · Momentary)") {
+                    assignCCPreset(.sustainMomentary, padIndex: padIndex, config: config)
+                }
+                Button("Sustain Toggle (CC 64 · Toggle)") {
+                    assignCCPreset(.sustainToggle, padIndex: padIndex, config: config)
+                }
+                Button("Mod Wheel Max (CC 1 · Momentary)") {
+                    assignCCPreset(.modMax, padIndex: padIndex, config: config)
+                }
+                Button("Expression Max (CC 11 · Momentary)") {
+                    assignCCPreset(.expressionMax, padIndex: padIndex, config: config)
+                }
+                Button("Volume Max (CC 7 · Trigger)") {
+                    assignCCPreset(.volumeFull, padIndex: padIndex, config: config)
+                }
+                Button("Volume Mute (CC 7 · Trigger)") {
+                    assignCCPreset(.volumeMute, padIndex: padIndex, config: config)
+                }
+                Button("All Sound Off (CC 120 · Trigger)") {
+                    assignCCPreset(.allSoundOff, padIndex: padIndex, config: config)
+                }
+                Button("Panic CC (CC 123 · Trigger)") {
+                    assignCCPreset(.allNotesOff, padIndex: padIndex, config: config)
+                }
+            }
+
+            Button("Configure Custom CC…") {
+                configuringCCPadIndex = padIndex
+                if let cc = config?.ccConfig {
+                    customCCController = "\(cc.controller)"
+                    customCCValue = "\(cc.value)"
+                    customCCOffValue = "\(cc.offValue)"
+                    customCCMode = cc.mode
+                    customCCLabel = cc.customLabel ?? ""
+                } else {
+                    customCCController = "64"
+                    customCCValue = "127"
+                    customCCOffValue = "0"
+                    customCCMode = .momentary
+                    customCCLabel = ""
+                }
+                showCCConfigSheet = true
             }
         }
     }
@@ -463,5 +565,73 @@ public struct DrumPadGridView: View {
             }
             return true
         }
+    }
+
+    private func assignCCPreset(_ preset: DrumPadCCConfig, padIndex: Int, config: DrumPadConfig?) {
+        let bank = appState.octave
+        var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+        current.ccConfig = preset
+        current.semitone = nil
+        current.octave = nil
+        current.chordTypeID = nil
+        current.midiCommand = nil
+        appState.updateDrumPadConfig(current)
+    }
+
+    // MARK: - Custom CC Sheet
+    private var customCCSheet: some View {
+        let padNum = (configuringCCPadIndex ?? 0) + 1
+        return VStack(spacing: 16) {
+            VStack(spacing: 4) {
+                Text("Configure MIDI CC for Pad \(padNum)")
+                    .font(.headline)
+                Text("Bank \(appState.octave)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Form {
+                TextField("Custom Label (optional):", text: $customCCLabel, prompt: Text("e.g. SUSTAIN, MUTE, FILTER"))
+                TextField("Controller (0–127):", text: $customCCController)
+                TextField("Trigger / On Value (0–127):", text: $customCCValue)
+
+                if customCCMode != .trigger {
+                    TextField("Off Value (0–127):", text: $customCCOffValue)
+                }
+
+                Picker("Mode:", selection: $customCCMode) {
+                    Text("Momentary (Press/Release)").tag(CCBindingMode.momentary)
+                    Text("Toggle (Alternate On/Off)").tag(CCBindingMode.toggle)
+                    Text("Trigger (One-shot)").tag(CCBindingMode.trigger)
+                }
+            }
+            .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button("Cancel") {
+                    showCCConfigSheet = false
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Spacer()
+
+                Button("Save") {
+                    if let pIdx = configuringCCPadIndex {
+                        let ctrl = UInt8(clamping: max(0, min(127, Int(customCCController) ?? 64)))
+                        let val = UInt8(clamping: max(0, min(127, Int(customCCValue) ?? 127)))
+                        let offVal = UInt8(clamping: max(0, min(127, Int(customCCOffValue) ?? 0)))
+                        let label = customCCLabel.trimmingCharacters(in: .whitespaces).isEmpty ? nil : customCCLabel
+
+                        let cc = DrumPadCCConfig(controller: ctrl, value: val, offValue: offVal, mode: customCCMode, customLabel: label)
+                        assignCCPreset(cc, padIndex: pIdx, config: appState.drumPadConfig(bank: appState.octave, padIndex: pIdx))
+                    }
+                    showCCConfigSheet = false
+                }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(20)
+        .frame(width: 380)
     }
 }

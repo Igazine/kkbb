@@ -93,9 +93,11 @@ public final class AppState {
 
     public var activeChordPadIndex: Int? = nil
     public var activeDrumPadKeys: Set<String> = [] // Elements are "\(bank)_\(padIndex)"
+    public var activeDrumPadCCToggles: Set<String> = [] // Elements are "\(bank)_\(padIndex)" for toggled ON CC pads
 
     public func isDrumPadActive(bank: Int, padIndex: Int) -> Bool {
-        activeDrumPadKeys.contains("\(bank)_\(padIndex)")
+        let key = "\(bank)_\(padIndex)"
+        return activeDrumPadKeys.contains(key) || activeDrumPadCCToggles.contains(key)
     }
 
     public var activeChordType: ChordType? {
@@ -169,6 +171,8 @@ public final class AppState {
 
     public func clearDrumPad(bank: Int, padIndex: Int) {
         let key = "\(bank)_\(padIndex)"
+        activeDrumPadCCToggles.remove(key)
+        activeDrumPadKeys.remove(key)
         activeProfile.drumPads.removeValue(forKey: key)
         saveDrumPads()
     }
@@ -193,6 +197,31 @@ public final class AppState {
             MIDIManager.shared.sendCommand(cmd, channel: channel, destinationUID: selectedDestinationUID)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                 self?.activeDrumPadKeys.remove(padKey)
+            }
+            return
+        }
+
+        // Handle MIDI CC Button / Trigger
+        if let cc = config.ccConfig {
+            switch cc.mode {
+            case .trigger:
+                activeDrumPadKeys.insert(padKey)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+                    self?.activeDrumPadKeys.remove(padKey)
+                }
+            case .momentary:
+                activeDrumPadKeys.insert(padKey)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+            case .toggle:
+                let currentlyOn = activeDrumPadCCToggles.contains(padKey)
+                if currentlyOn {
+                    activeDrumPadCCToggles.remove(padKey)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+                } else {
+                    activeDrumPadCCToggles.insert(padKey)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                }
             }
             return
         }
@@ -228,6 +257,14 @@ public final class AppState {
 
         if config.midiCommand != nil {
             activeDrumPadKeys.remove(padKey)
+            return
+        }
+
+        if let cc = config.ccConfig {
+            if cc.mode == .momentary {
+                activeDrumPadKeys.remove(padKey)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+            }
             return
         }
 
