@@ -177,32 +177,6 @@ public final class KeyboardMonitor {
                 return true
             }
 
-            // Check if this key matches a configured MIDI CC Key Trigger
-            if let ccBinding = appState.activeProfile.ccBindings.first(where: { matchesKey(keyChar: $0.keyChar, event: event) }) {
-                let channel = appState.channel
-                let destUID = appState.selectedDestinationUID
-
-                switch ccBinding.mode {
-                case .momentary:
-                    pressedKeyToCC[event.keyCode] = ccBinding
-                    pipeline.sendCC(controller: ccBinding.controller, value: ccBinding.value, channel: channel, destinationUID: destUID)
-                case .trigger:
-                    pipeline.sendCC(controller: ccBinding.controller, value: ccBinding.value, channel: channel, destinationUID: destUID)
-                case .toggle:
-                    let currentlyOn = activeCCToggleStates[ccBinding.id] ?? false
-                    let newState = !currentlyOn
-                    activeCCToggleStates[ccBinding.id] = newState
-                    let val: UInt8 = newState ? ccBinding.value : 0
-                    pipeline.sendCC(controller: ccBinding.controller, value: val, channel: channel, destinationUID: destUID)
-                }
-                return true
-            }
-
-            // Check if this key is already pressed for note
-            if pressedKeyToNotes[event.keyCode] != nil {
-                return true
-            }
-
             // In Drum Grid mode: check all banks, giving priority to the visible bank
             if appState.mode == .drumGrid {
                 let currentBank = appState.octave
@@ -227,46 +201,72 @@ public final class KeyboardMonitor {
                     }
                 }
 
-                guard let pad = matchedPad else { return false }
-
-                // Check if this pad is assigned to a MIDI Command (Transport / Panic)
-                if pad.midiCommand != nil {
-                    DispatchQueue.main.async {
-                        appState.triggerDrumPadOn(bank: pad.bank, padIndex: pad.padIndex)
+                if let pad = matchedPad {
+                    // Check if this pad is assigned to a MIDI Command (Transport / Panic)
+                    if pad.midiCommand != nil {
+                        DispatchQueue.main.async {
+                            appState.triggerDrumPadOn(bank: pad.bank, padIndex: pad.padIndex)
+                        }
+                        return true
                     }
-                    return true
+
+                    let notesToPlay = pad.notesToSend
+                    if !notesToPlay.isEmpty {
+                        pressedKeyToNotes[event.keyCode] = notesToPlay
+                        let velocity = UInt8(appState.velocity)
+                        let channel = appState.channel
+                        let destUID = appState.selectedDestinationUID
+
+                        for n in notesToPlay {
+                            pipeline.sendNoteOn(note: n, velocity: velocity, channel: channel, destinationUID: destUID)
+                        }
+
+                        let padKey = "\(pad.bank)_\(pad.padIndex)"
+                        DispatchQueue.main.async {
+                            appState.activeDrumPadKeys.insert(padKey)
+                            for n in notesToPlay {
+                                appState.activeNotes.insert(n)
+                            }
+                        }
+
+                        if appState.isOneShotMode {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self, weak appState] in
+                                guard let self = self, let appState = appState else { return }
+                                for n in notesToPlay {
+                                    self.pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
+                                    appState.activeNotes.remove(n)
+                                }
+                                appState.activeDrumPadKeys.remove(padKey)
+                            }
+                        }
+                        return true
+                    }
                 }
+            }
 
-                let notesToPlay = pad.notesToSend
-                guard !notesToPlay.isEmpty else { return false }
-
-                pressedKeyToNotes[event.keyCode] = notesToPlay
-                let velocity = UInt8(appState.velocity)
+            // Check if this key matches a configured MIDI CC Key Trigger
+            if let ccBinding = appState.activeProfile.ccBindings.first(where: { matchesKey(keyChar: $0.keyChar, event: event) }) {
                 let channel = appState.channel
                 let destUID = appState.selectedDestinationUID
 
-                for n in notesToPlay {
-                    pipeline.sendNoteOn(note: n, velocity: velocity, channel: channel, destinationUID: destUID)
+                switch ccBinding.mode {
+                case .momentary:
+                    pressedKeyToCC[event.keyCode] = ccBinding
+                    pipeline.sendCC(controller: ccBinding.controller, value: ccBinding.value, channel: channel, destinationUID: destUID)
+                case .trigger:
+                    pipeline.sendCC(controller: ccBinding.controller, value: ccBinding.value, channel: channel, destinationUID: destUID)
+                case .toggle:
+                    let currentlyOn = activeCCToggleStates[ccBinding.id] ?? false
+                    let newState = !currentlyOn
+                    activeCCToggleStates[ccBinding.id] = newState
+                    let val: UInt8 = newState ? ccBinding.value : 0
+                    pipeline.sendCC(controller: ccBinding.controller, value: val, channel: channel, destinationUID: destUID)
                 }
+                return true
+            }
 
-                let padKey = "\(pad.bank)_\(pad.padIndex)"
-                DispatchQueue.main.async {
-                    appState.activeDrumPadKeys.insert(padKey)
-                    for n in notesToPlay {
-                        appState.activeNotes.insert(n)
-                    }
-                }
-
-                if appState.isOneShotMode {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self, weak appState] in
-                        guard let self = self, let appState = appState else { return }
-                        for n in notesToPlay {
-                            self.pipeline.sendNoteOff(note: n, channel: channel, destinationUID: destUID)
-                            appState.activeNotes.remove(n)
-                        }
-                        appState.activeDrumPadKeys.remove(padKey)
-                    }
-                }
+            // Check if this key is already pressed for note
+            if pressedKeyToNotes[event.keyCode] != nil {
                 return true
             }
 
