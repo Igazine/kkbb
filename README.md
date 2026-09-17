@@ -161,7 +161,7 @@ KKBB is built for Apple Silicon Macs running **macOS 14.0 (Sonoma)** or later.
 ### Build & Run from Xcode
 1. Clone or download the repository:
    ```bash
-   git clone https://github.com/digigun/kkbb.git
+   git clone https://github.com/Igazine/kkbb.git
    cd kkbb
    ```
 2. Open the Xcode project:
@@ -174,7 +174,7 @@ KKBB is built for Apple Silicon Macs running **macOS 14.0 (Sonoma)** or later.
 ### Build & Run from Terminal
 ```bash
 # Clone the repository
-git clone https://github.com/digigun/kkbb.git
+git clone https://github.com/Igazine/kkbb.git
 cd kkbb
 
 # Compile the macOS application
