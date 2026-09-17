@@ -52,6 +52,7 @@ struct ContentView: View {
         .onAppear {
             refreshDestinations()
             KeyboardMonitor.shared.start(with: appState)
+            appState.applyWindowLevel()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 NSApp.keyWindow?.makeFirstResponder(nil)
             }

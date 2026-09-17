@@ -12,6 +12,13 @@ struct KKBBApp: App {
         .windowToolbarStyle(.unifiedCompact)
         .defaultSize(width: 820, height: 260)
         .commands {
+            CommandGroup(after: .windowArrangement) {
+                Toggle("Always on Top", isOn: Binding(
+                    get: { appState.isAlwaysOnTop },
+                    set: { appState.isAlwaysOnTop = $0 }
+                ))
+            }
+
             CommandMenu("Keyboard") {
                 Button("Octave Up") {
                     if appState.octave < 6 {

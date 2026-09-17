@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import CoreMIDI
+import AppKit
 
 public struct MIDIEndpointInfo: Identifiable, Hashable {
     public let id: Int32
@@ -69,6 +70,12 @@ public final class AppState {
             defaults.set(isOneShotMode, forKey: "kkbb.isOneShotMode")
         }
     }
+    public var isAlwaysOnTop: Bool {
+        didSet {
+            defaults.set(isAlwaysOnTop, forKey: "kkbb.isAlwaysOnTop")
+            applyWindowLevel()
+        }
+    }
 
     public var activeProfile: KeyBindingProfile {
         didSet {
@@ -105,6 +112,7 @@ public final class AppState {
         self.velocity = (1...127).contains(savedVelocity) ? savedVelocity : 100
 
         self.isOneShotMode = defaults.bool(forKey: "kkbb.isOneShotMode")
+        self.isAlwaysOnTop = defaults.bool(forKey: "kkbb.isAlwaysOnTop")
 
         // Load profiles
         var loadedProfiles: [KeyBindingProfile] = []
@@ -215,5 +223,13 @@ public final class AppState {
             defaults.set(encoded, forKey: "kkbb.userProfiles")
         }
         defaults.set(activeProfile.id.uuidString, forKey: "kkbb.activeProfileID")
+    }
+
+    public func applyWindowLevel() {
+        DispatchQueue.main.async {
+            for window in NSApp.windows where !window.isSheet {
+                window.level = self.isAlwaysOnTop ? .floating : .normal
+            }
+        }
     }
 }
