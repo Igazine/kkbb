@@ -221,6 +221,7 @@ struct SettingsView: View {
                     Text("2-Octaves").tag(KeyboardMode.twoOctaves)
                 }
                 .pickerStyle(.segmented)
+                .labelsHidden()
                 .frame(width: 180)
             }
 
