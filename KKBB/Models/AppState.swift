@@ -96,6 +96,13 @@ public final class AppState {
     public var activeDrumPadKeys: Set<String> = [] // Elements are "\(bank)_\(padIndex)"
     public var activeDrumPadCCToggles: Set<String> = [] // Elements are "\(bank)_\(padIndex)" for toggled ON CC pads
 
+    public var currentPadGridURL: URL? {
+        didSet {
+            currentPadGridName = currentPadGridURL?.deletingPathExtension().lastPathComponent
+        }
+    }
+    public var currentPadGridName: String?
+
     public func isDrumPadActive(bank: Int, padIndex: Int) -> Bool {
         let key = "\(bank)_\(padIndex)"
         return activeDrumPadKeys.contains(key) || activeDrumPadCCToggles.contains(key)
@@ -176,6 +183,35 @@ public final class AppState {
         activeDrumPadKeys.remove(key)
         activeProfile.drumPads.removeValue(forKey: key)
         saveDrumPads()
+    }
+
+    public func clearAllDrumPads() {
+        activeDrumPadCCToggles.removeAll()
+        activeDrumPadKeys.removeAll()
+        activeProfile.drumPads.removeAll()
+        saveDrumPads()
+        currentPadGridURL = nil
+    }
+
+    public func savePadGridLayout(to url: URL) throws {
+        let layoutName = url.deletingPathExtension().lastPathComponent
+        let layout = PadGridLayout(name: layoutName, drumPads: activeProfile.drumPads)
+        let data = try layout.encode()
+        try data.write(to: url, options: .atomic)
+        currentPadGridURL = url
+    }
+
+    public func loadPadGridLayout(from url: URL) throws {
+        let data = try Data(contentsOf: url)
+        let layout = try PadGridLayout.decode(from: data)
+        activeDrumPadCCToggles.removeAll()
+        activeDrumPadKeys.removeAll()
+        activeProfile.drumPads = layout.drumPads
+        saveDrumPads()
+        currentPadGridURL = url
+        if mode != .drumGrid {
+            mode = .drumGrid
+        }
     }
 
     private func saveDrumPads() {

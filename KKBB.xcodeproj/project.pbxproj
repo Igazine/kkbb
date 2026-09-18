@@ -33,6 +33,8 @@
 		10000024 /* DrumPadGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000024 /* DrumPadGridView.swift */; };
 		10000025 /* MIDICommandType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000025 /* MIDICommandType.swift */; };
 		10000026 /* DrumPadCCConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000026 /* DrumPadCCConfig.swift */; };
+		10000027 /* PadGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000027 /* PadGridLayout.swift */; };
+		10000028 /* PadGridDocumentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000028 /* PadGridDocumentManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +65,8 @@
 		20000024 /* DrumPadGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadGridView.swift; sourceTree = "<group>"; };
 		20000025 /* MIDICommandType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDICommandType.swift; sourceTree = "<group>"; };
 		20000026 /* DrumPadCCConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadCCConfig.swift; sourceTree = "<group>"; };
+		20000027 /* PadGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadGridLayout.swift; sourceTree = "<group>"; };
+		20000028 /* PadGridDocumentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadGridDocumentManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +114,7 @@
 				20000023 /* DrumPadConfig.swift */,
 				20000025 /* MIDICommandType.swift */,
 				20000026 /* DrumPadCCConfig.swift */,
+				20000027 /* PadGridLayout.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -129,6 +134,7 @@
 			children = (
 				20000005 /* MIDIManager.swift */,
 				20000006 /* KeyboardMonitor.swift */,
+				20000028 /* PadGridDocumentManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -258,6 +264,8 @@
 				10000024 /* DrumPadGridView.swift in Sources */,
 				10000025 /* MIDICommandType.swift in Sources */,
 				10000026 /* DrumPadCCConfig.swift in Sources */,
+				10000027 /* PadGridLayout.swift in Sources */,
+				10000028 /* PadGridDocumentManager.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

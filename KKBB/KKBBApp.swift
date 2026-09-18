@@ -12,6 +12,30 @@ struct KKBBApp: App {
         .windowToolbarStyle(.unifiedCompact)
         .defaultSize(width: 820, height: 420)
         .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Pad Grid Layout") {
+                    PadGridDocumentManager.shared.newLayout(for: appState)
+                }
+                .keyboardShortcut("n", modifiers: [.command])
+
+                Button("Open Pad Grid Layout…") {
+                    PadGridDocumentManager.shared.openLayout(for: appState)
+                }
+                .keyboardShortcut("o", modifiers: [.command])
+            }
+
+            CommandGroup(replacing: .saveItem) {
+                Button("Save Pad Grid Layout") {
+                    PadGridDocumentManager.shared.save(for: appState)
+                }
+                .keyboardShortcut("s", modifiers: [.command])
+
+                Button("Save Pad Grid Layout As…") {
+                    PadGridDocumentManager.shared.saveAs(for: appState)
+                }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+            }
+
             CommandGroup(after: .windowArrangement) {
                 Toggle("Always on Top", isOn: Binding(
                     get: { appState.isAlwaysOnTop },

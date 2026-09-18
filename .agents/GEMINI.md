@@ -61,6 +61,7 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Pad labels show assigned Key combination, Note + Octave (e.g. C1), Command Badge (e.g. ▶ PLAY, ■ STOP, ❚❚ PAUSE, ● REC), or CC Label (e.g. CC 64, SUSTAIN), along with sub-badge (e.g. m7, REALTIME, MMC, SYS, CC·MOM, CC·TOG, CC·TRG); unassigned pads display empty
 * * Visual Feedback: Active pad glows in accent blue upon physical keyboard press, mouse trigger, or when locked in CC Toggle ON state
 * * Mode Isolation: When in 4x4 Grid mode, piano roll keyboard triggers are bypassed; when in piano modes, drum grid triggers are bypassed
+* * Layout Save & Load: Save and load complete 4x4 Pad Grid setups (all 112 pads across Banks 0–6) to and from local files (`.kkbbgrid` / `.json`) via File menu commands (New `⌘N`, Open `⌘O`, Save `⌘S`, Save As `⇧⌘S`). Automatically switches to Grid mode on load and displays layout name in window subtitle.
 
 ## Tech Stack
 

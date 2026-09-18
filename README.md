@@ -72,6 +72,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * **MIDI CC Buttons**:
     * **Presets**: Sustain Momentary, Sustain Toggle, Mod Wheel Max, Expression Max, Volume Max, Volume Mute, All Sound Off, Panic CC.
     * **Custom CC Sheet**: User-defined Controller # (0–127), Target/On Value (0–127), Off Value (0–127), and Mode (**Momentary**, **Toggle** with persistent visual lock, or **Trigger**).
+* **Layout Save & Load**: Save and load complete 112-pad rigs across Banks 0–6 to/from local `.kkbbgrid` or `.json` files via the **File** menu. Auto-switches to Grid mode on load and shows the file name in the window subtitle.
 
 ---
 
@@ -101,6 +102,10 @@ Positioned directly below the piano roll, these 12 pads provide instant chord ha
 | **Velocity +10** | `Shift` + `→` | Increases fixed keyboard velocity by 10 |
 | **Sustain Pedal** | `Space` *(piano modes)* | CC #64 Sustain momentary trigger (unless Space is assigned to a pad) |
 | **Chord Pads 1–12** | `F1`–`F12` | Toggle Chord Voicing / Scale Pads 1–12 |
+| **New Pad Grid Layout** | `⌘` + `N` | Clears all pad assignments across Banks 0–6 |
+| **Open Pad Grid Layout…** | `⌘` + `O` | Opens `.kkbbgrid` or `.json` file picker |
+| **Save Pad Grid Layout** | `⌘` + `S` | Saves layout in place (prompts Save As if new) |
+| **Save Pad Grid Layout As…** | `⇧` + `⌘` + `S` | Saves layout to a new `.kkbbgrid` file |
 | **Settings** | `⌘` + `,` | Opens Settings & Profiles modal |
 | **Panic** | `⌘` + `.` | All Notes Off & Sound Reset |
 
