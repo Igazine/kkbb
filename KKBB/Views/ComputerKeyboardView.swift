@@ -230,7 +230,28 @@ struct ComputerKeyboardView: View {
         keySpacing: CGFloat
     ) -> some View {
         let width = itemWidth(units: key.widthUnits, unitWidth: unitWidth, spacing: keySpacing)
-        let height = key.isNumpadEnter ? (unitHeight * 2 + keySpacing) : unitHeight
+        let visualHeight = key.isNumpadEnter ? (unitHeight * 2 + keySpacing) : unitHeight
+
+        if key.isNumpadEnter {
+            // Anchor to Row 3 without expanding Row 3's HStack height
+            Color.clear
+                .frame(width: width, height: unitHeight)
+                .overlay(alignment: .top) {
+                    keyCapContent(key: key, width: width, height: visualHeight, unitWidth: unitWidth)
+                }
+                .zIndex(10)
+        } else {
+            keyCapContent(key: key, width: width, height: visualHeight, unitWidth: unitWidth)
+        }
+    }
+
+    @ViewBuilder
+    private func keyCapContent(
+        key: ComputerKeyInfo,
+        width: CGFloat,
+        height: CGFloat,
+        unitWidth: CGFloat
+    ) -> some View {
         let keyCode = key.keyCode
         let config = keyCode.flatMap { appState.computerKeyConfig(keyCode: $0) }
         let isConfigured = config?.isAssigned ?? false
@@ -290,7 +311,6 @@ struct ComputerKeyboardView: View {
             .padding(.vertical, 1)
         }
         .frame(width: width, height: height)
-        .offset(y: key.isNumpadEnter ? (unitHeight + keySpacing) / 2 : 0)
         .contentShape(Rectangle())
         .onTapGesture {
             if let code = key.keyCode, key.isConfigurable {
