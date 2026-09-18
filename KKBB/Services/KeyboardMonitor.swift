@@ -112,6 +112,15 @@ public final class KeyboardMonitor {
         }
 
         if event.type == .keyDown {
+            // In Computer Keyboard mode: route all physical keys directly to computer keyboard engine
+            if appState.mode == .computerKeyboard {
+                if event.isARepeat { return true }
+                DispatchQueue.main.async {
+                    appState.triggerComputerKeyOn(keyCode: event.keyCode)
+                }
+                return true
+            }
+
             // Check for Arrow keys (Octave: Up/Down, Velocity: Left/Right)
             switch event.keyCode {
             case 126: // Up Arrow -> Octave +1
@@ -175,17 +184,6 @@ public final class KeyboardMonitor {
                     appState.toggleChordPad(index: padIndex)
                 }
                 return true
-            }
-
-            // In Computer Keyboard mode: check if this physical key is assigned
-            if appState.mode == .computerKeyboard {
-                if let config = appState.computerKeyConfig(keyCode: event.keyCode), config.isAssigned {
-                    DispatchQueue.main.async {
-                        appState.triggerComputerKeyOn(keyCode: event.keyCode)
-                    }
-                    return true
-                }
-                return false
             }
 
             // In Drum Grid mode: check all banks, giving priority to the visible bank
@@ -317,13 +315,10 @@ public final class KeyboardMonitor {
 
         } else if event.type == .keyUp {
             if appState.mode == .computerKeyboard {
-                if let config = appState.computerKeyConfig(keyCode: event.keyCode), config.isAssigned {
-                    DispatchQueue.main.async {
-                        appState.triggerComputerKeyOff(keyCode: event.keyCode)
-                    }
-                    return true
+                DispatchQueue.main.async {
+                    appState.triggerComputerKeyOff(keyCode: event.keyCode)
                 }
-                return false
+                return true
             }
 
             if appState.mode == .drumGrid {

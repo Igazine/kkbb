@@ -269,9 +269,17 @@ struct ComputerKeyboardView: View {
                 .fill(keyBackground(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive))
                 .overlay(
                     RoundedRectangle(cornerRadius: keyCornerRadius)
-                        .stroke(keyBorder(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive), lineWidth: 0.5)
+                        .stroke(
+                            keyBorder(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive),
+                            lineWidth: keyBorderWidth(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive)
+                        )
                 )
-                .shadow(color: .black.opacity(isActive ? 0.35 : 0.15), radius: 1, x: 0, y: 1)
+                .shadow(
+                    color: (isActive && !isConfigured && key.isConfigurable) ? Color.accentColor.opacity(0.45) : .black.opacity(isActive ? 0.35 : 0.15),
+                    radius: (isActive && !isConfigured && key.isConfigurable) ? 2 : 1,
+                    x: 0,
+                    y: 1
+                )
 
             // Content
             VStack(spacing: 1) {
@@ -283,7 +291,7 @@ struct ComputerKeyboardView: View {
 
                 Text(key.label)
                     .font(.system(size: Swift.max(7.0, Swift.min(13.0, unitWidth * 0.30)), weight: key.isConfigurable ? .semibold : .regular, design: .rounded))
-                    .foregroundStyle(keyTextColor(isConfigurable: key.isConfigurable, isActive: isActive))
+                    .foregroundStyle(keyTextColor(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive))
                     .lineLimit(1)
 
                 // Assignment Badges
@@ -381,13 +389,22 @@ struct ComputerKeyboardView: View {
                 .fill(keyBackground(isConfigurable: true, isConfigured: isConfigured, isActive: isActive))
                 .overlay(
                     RoundedRectangle(cornerRadius: keyCornerRadius)
-                        .stroke(keyBorder(isConfigurable: true, isConfigured: isConfigured, isActive: isActive), lineWidth: 0.5)
+                        .stroke(
+                            keyBorder(isConfigurable: true, isConfigured: isConfigured, isActive: isActive),
+                            lineWidth: keyBorderWidth(isConfigurable: true, isConfigured: isConfigured, isActive: isActive)
+                        )
+                )
+                .shadow(
+                    color: (isActive && !isConfigured) ? Color.accentColor.opacity(0.45) : .black.opacity(isActive ? 0.35 : 0.15),
+                    radius: (isActive && !isConfigured) ? 2 : 1,
+                    x: 0,
+                    y: 1
                 )
 
             HStack(spacing: 2) {
                 Text(label)
                     .font(.system(size: Swift.max(6.5, Swift.min(10.0, unitWidth * 0.24)), weight: .semibold))
-                    .foregroundStyle(keyTextColor(isConfigurable: true, isActive: isActive))
+                    .foregroundStyle(keyTextColor(isConfigurable: true, isConfigured: isConfigured, isActive: isActive))
 
                 if let cfg = config, cfg.isAssigned {
                     if let note = cfg.fullNoteLabel {
@@ -421,7 +438,7 @@ struct ComputerKeyboardView: View {
     }
 
     private func keyBackground(isConfigurable: Bool, isConfigured: Bool, isActive: Bool) -> Color {
-        if isActive {
+        if isActive && isConfigured {
             return Color.accentColor.opacity(0.85)
         }
         if !isConfigurable {
@@ -435,7 +452,11 @@ struct ComputerKeyboardView: View {
 
     private func keyBorder(isConfigurable: Bool, isConfigured: Bool, isActive: Bool) -> Color {
         if isActive {
-            return Color.white.opacity(0.8)
+            if isConfigured {
+                return Color.white.opacity(0.85)
+            } else if isConfigurable {
+                return Color.accentColor
+            }
         }
         if isConfigured {
             return Color.accentColor.opacity(0.65)
@@ -446,9 +467,20 @@ struct ComputerKeyboardView: View {
         return Color.black.opacity(0.15)
     }
 
-    private func keyTextColor(isConfigurable: Bool, isActive: Bool) -> Color {
+    private func keyBorderWidth(isConfigurable: Bool, isConfigured: Bool, isActive: Bool) -> CGFloat {
+        if isActive && !isConfigured && isConfigurable {
+            return 1.5
+        }
+        return 0.5
+    }
+
+    private func keyTextColor(isConfigurable: Bool, isConfigured: Bool, isActive: Bool) -> Color {
         if isActive {
-            return .white
+            if isConfigured {
+                return .white
+            } else if isConfigurable {
+                return Color.accentColor
+            }
         }
         if isConfigurable {
             return .primary

@@ -271,11 +271,15 @@ public final class AppState {
     }
 
     public func triggerComputerKeyOn(keyCode: UInt16, velocityOverride: UInt8? = nil) {
-        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else { return }
+        activeComputerKeys.insert(keyCode)
+
+        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else {
+            // Unassigned key: visual border feedback only, no MIDI transmitted
+            return
+        }
 
         // Handle MIDI Command (Transport / Panic)
         if let cmd = config.midiCommand {
-            activeComputerKeys.insert(keyCode)
             MIDIManager.shared.sendCommand(cmd, channel: channel, destinationUID: selectedDestinationUID)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                 self?.activeComputerKeys.remove(keyCode)
@@ -287,13 +291,11 @@ public final class AppState {
         if let cc = config.ccConfig {
             switch cc.mode {
             case .trigger:
-                activeComputerKeys.insert(keyCode)
                 MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                     self?.activeComputerKeys.remove(keyCode)
                 }
             case .momentary:
-                activeComputerKeys.insert(keyCode)
                 MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
             case .toggle:
                 if activeComputerCCToggles.contains(keyCode) {
@@ -311,7 +313,6 @@ public final class AppState {
         let notes = config.notesToSend
         guard !notes.isEmpty else { return }
 
-        activeComputerKeys.insert(keyCode)
         let vel = velocityOverride ?? UInt8(velocity)
 
         for n in notes {
@@ -331,16 +332,17 @@ public final class AppState {
     }
 
     public func triggerComputerKeyOff(keyCode: UInt16) {
-        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else { return }
+        activeComputerKeys.remove(keyCode)
 
-        // Momentary CC release
-        if let cc = config.ccConfig, cc.mode == .momentary {
-            activeComputerKeys.remove(keyCode)
-            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else {
             return
         }
 
-        activeComputerKeys.remove(keyCode)
+        // Momentary CC release
+        if let cc = config.ccConfig, cc.mode == .momentary {
+            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+            return
+        }
 
         let notes = config.notesToSend
         for n in notes {
