@@ -33,12 +33,13 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 
 ## Screenshots
 
-![1-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.20.46.png)
-![2-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.25.39.png)
-![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-17%20at%2019.26.37.png)
-![75-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.27.56.png)
-![75-key Computer Keyboard Mode with Colors](screenshots/Screenshot%202026-09-18%20at%2014.22.17.png)
-![101-key Computer Keyboard Mode with Colors](screenshots/Screenshot%202026-09-18%20at%2014.32.00.png)
+![1-Octave Screen](screenshots/Screenshot%202026-09-18%20at%2015.32.34.png)
+![2-Octave Screen](screenshots/Screenshot%202026-09-18%20at%2015.33.03.png)
+![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.09.png)
+![75-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.27.png)
+![101-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.56.png)
+![Compact Mode](screenshots/Screenshot%202026-09-18%20at%2015.35.36.png)
+![Micro HUD](screenshots/Screenshot%202026-09-18%20at%2015.35.52.png)
 
 ---
 
