@@ -23,6 +23,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * **Per-Key Chord Overrides**: Right-click any piano key to assign a distinct chord or scale with priority over the active chord pad.
 * **Assignable Rotary Knobs**: 8 CC knobs with 270° sweep, vertical drag control, Shift for 4x fine precision, double-click reset, and right-click CC assignment presets or custom labels.
 * **Performance Control Strip**: Dedicated VEL (Velocity 1–127), PTCH (14-bit Pitch Bend with spring-return to center), and MOD (CC #1 Modulation friction wheel).
+* **Per-Pad & Per-Key MIDI Routing Overrides**: Route individual pads and computer keyboard keys to specific **MIDI Channels (1–16)** and **Output Destinations** (`KKBB Virtual Only` or specific external hardware/DAW endpoints) via right-click context menus, transforming KKBB into a multi-timbral master controller with hanging-note protection.
 * **One-Shot Trigger Mode**: 50 ms trigger pulse mode without sustain, ideal for samplers, drum machines, and grooveboxes.
 * **Full Transport & MIDI CC Integration**: Assign pads to MIDI System Real-Time transport (`Start`, `Stop`, `Continue`), MMC SysEx, or arbitrary CC switches (Momentary, Toggle, Trigger).
 * **Zero Audio Overhead**: Pure CoreMIDI engine. No audio synthesis, no DSP bloat, and zero latency.
@@ -84,6 +85,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * **MIDI CC Buttons**:
     * **Presets**: Sustain Momentary, Sustain Toggle, Mod Wheel Max, Expression Max, Volume Max, Volume Mute, All Sound Off, Panic CC.
     * **Custom CC Sheet**: User-defined Controller # (0–127), Target/On Value (0–127), Off Value (0–127), and Mode (**Momentary**, **Toggle** with persistent visual lock, or **Trigger**).
+  * **MIDI Channel & Output Destination Overrides**: Route individual pads to specific MIDI Channels (1–16) and Output Destinations (`KKBB Virtual Only` or detected external hardware/DAW ports). Displays compact `CH10` (purple) and `VIRT` / `EXT` (teal) status badges in the pad header.
 * **Unified Layout Save & Load**: Save and load complete performance setups (including 112-pad setups across Banks 0–6, Computer Keyboard layouts, sub-layouts, and modifier layers) to/from unified local `.kkbb` or `.json` files via the **File** menu. Displays the layout name in the window subtitle.
 
 ### 3. Computer Keyboard Mode
@@ -100,7 +102,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * Mouse clicks on keys trigger Note-On / CC immediately on mouse down, sustain while held, and release on mouse up.
   * Configured keys illuminate in accent blue on physical key presses, mouse clicks, or when locked in CC Toggle mode.
   * Unassigned configurable keys glow with an accent blue border stroke and no MIDI output, giving instant visual feedback for international keyboard layouts.
-* **Right-Click Assignment**: Right-click any configurable key to assign Root Note & Octave, Voicing (14 chords, 20 Bitwig scales), MIDI Real-Time/MMC commands, or MIDI CC triggers for the active layer, with a "Copy from Base Layer" option.
+* **Right-Click Assignment**: Right-click any configurable key to assign Root Note & Octave, Voicing (14 chords, 20 Bitwig scales), MIDI Real-Time/MMC commands, MIDI CC triggers, or **MIDI Channel & Output Destination Overrides** for the active layer, with a "Copy from Base Layer" option. Displays subtle channel badges (`C10`) directly on keycaps.
 
 ---
 
