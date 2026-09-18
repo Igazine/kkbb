@@ -184,6 +184,26 @@ xcodebuild -scheme KKBB -destination 'platform=macOS,arch=arm64' build
 open $(find ~/Library/Developer/Xcode/DerivedData -name "KKBB.app" 2>/dev/null | head -n 1)
 ```
 
+### Installing to `/Applications`
+
+To build an optimized Release version and place it directly into your `/Applications` folder:
+
+```bash
+# Build Release binary and copy to /Applications
+xcodebuild -scheme KKBB -configuration Release -derivedDataPath ./build build
+cp -R ./build/Build/Products/Release/KKBB.app /Applications/
+```
+
+Alternatively, use Xcode's built-in `install` action:
+
+```bash
+# Install directly to /Applications (requires sudo for root-owned /Applications)
+sudo xcodebuild -scheme KKBB -configuration Release install DSTROOT=/
+
+# Or install to your user-level ~/Applications folder without sudo:
+xcodebuild -scheme KKBB -configuration Release install DSTROOT="$HOME" INSTALL_PATH="/Applications"
+```
+
 ---
 
 ## MIDI Architecture
