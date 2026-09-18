@@ -38,6 +38,7 @@
 		10000029 /* ComputerKeyboardType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000029 /* ComputerKeyboardType.swift */; };
 		10000030 /* ComputerKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000030 /* ComputerKeyboardView.swift */; };
 		10000031 /* ComputerKeyboardLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000031 /* ComputerKeyboardLayer.swift */; };
+		10000032 /* PadColorAccent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000032 /* PadColorAccent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		20000029 /* ComputerKeyboardType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardType.swift; sourceTree = "<group>"; };
 		20000030 /* ComputerKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardView.swift; sourceTree = "<group>"; };
 		20000031 /* ComputerKeyboardLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardLayer.swift; sourceTree = "<group>"; };
+		20000032 /* PadColorAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadColorAccent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +125,7 @@
 				20000027 /* KKBBLayoutBundle.swift */,
 				20000029 /* ComputerKeyboardType.swift */,
 				20000031 /* ComputerKeyboardLayer.swift */,
+				20000032 /* PadColorAccent.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -278,6 +281,7 @@
 				10000029 /* ComputerKeyboardType.swift in Sources */,
 				10000030 /* ComputerKeyboardView.swift in Sources */,
 				10000031 /* ComputerKeyboardLayer.swift in Sources */,
+				10000032 /* PadColorAccent.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

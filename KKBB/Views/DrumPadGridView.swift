@@ -63,19 +63,15 @@ public struct DrumPadGridView: View {
         let isActive = appState.isDrumPadActive(bank: bank, padIndex: padIndex)
         let isAssigned = config?.isAssigned == true
 
+        let accent = config?.colorAccent ?? .none
+
         ZStack {
             RoundedRectangle(cornerRadius: 7)
-                .fill(
-                    isActive
-                        ? Color.accentColor
-                        : (isAssigned ? Color(nsColor: .controlBackgroundColor).opacity(0.85) : Color(nsColor: .controlBackgroundColor).opacity(0.35))
-                )
+                .fill(accent.padBackground(isActive: isActive, isConfigured: isAssigned))
                 .overlay(
                     RoundedRectangle(cornerRadius: 7)
                         .stroke(
-                            isActive
-                                ? Color.white.opacity(0.6)
-                                : (isAssigned ? Color.secondary.opacity(0.3) : Color.secondary.opacity(0.15)),
+                            accent.padBorder(isActive: isActive, isConfigured: isAssigned),
                             lineWidth: isActive ? 1.5 : 1.0
                         )
                 )
@@ -568,6 +564,27 @@ public struct DrumPadGridView: View {
                     // Keep existing selection
                 } label: {
                     Label("\(offlineName) (Offline)", systemImage: "checkmark")
+                }
+            }
+        }
+
+        Divider()
+
+        // Color Accent Submenu
+        Menu("Color Accent") {
+            let activeAccent = config?.colorAccent ?? .none
+
+            ForEach(PadColorAccent.allCases) { accent in
+                Button {
+                    var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                    current.colorAccent = (accent == .none) ? nil : accent
+                    appState.updateDrumPadConfig(current)
+                } label: {
+                    if activeAccent == accent {
+                        Label(accent.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(accent.displayName)
+                    }
                 }
             }
         }

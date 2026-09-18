@@ -266,11 +266,11 @@ struct ComputerKeyboardView: View {
         ZStack {
             // Key Cap Background
             RoundedRectangle(cornerRadius: keyCornerRadius)
-                .fill(keyBackground(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive))
+                .fill(keyBackground(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive, accent: config?.colorAccent))
                 .overlay(
                     RoundedRectangle(cornerRadius: keyCornerRadius)
                         .stroke(
-                            keyBorder(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive),
+                            keyBorder(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive, accent: config?.colorAccent),
                             lineWidth: keyBorderWidth(isConfigurable: key.isConfigurable, isConfigured: isConfigured, isActive: isActive)
                         )
                 )
@@ -413,11 +413,11 @@ struct ComputerKeyboardView: View {
 
         ZStack {
             RoundedRectangle(cornerRadius: keyCornerRadius)
-                .fill(keyBackground(isConfigurable: true, isConfigured: isConfigured, isActive: isActive))
+                .fill(keyBackground(isConfigurable: true, isConfigured: isConfigured, isActive: isActive, accent: config?.colorAccent))
                 .overlay(
                     RoundedRectangle(cornerRadius: keyCornerRadius)
                         .stroke(
-                            keyBorder(isConfigurable: true, isConfigured: isConfigured, isActive: isActive),
+                            keyBorder(isConfigurable: true, isConfigured: isConfigured, isActive: isActive, accent: config?.colorAccent),
                             lineWidth: keyBorderWidth(isConfigurable: true, isConfigured: isConfigured, isActive: isActive)
                         )
                 )
@@ -475,7 +475,11 @@ struct ComputerKeyboardView: View {
         }
     }
 
-    private func keyBackground(isConfigurable: Bool, isConfigured: Bool, isActive: Bool) -> Color {
+    private func keyBackground(isConfigurable: Bool, isConfigured: Bool, isActive: Bool, accent: PadColorAccent? = nil) -> Color {
+        let padAccent = accent ?? .none
+        if padAccent != .none && isConfigurable {
+            return padAccent.padBackground(isActive: isActive, isConfigured: isConfigured)
+        }
         if isActive && isConfigured {
             return Color.accentColor.opacity(0.85)
         }
@@ -488,7 +492,11 @@ struct ComputerKeyboardView: View {
         return Color(nsColor: .controlBackgroundColor).opacity(0.40)
     }
 
-    private func keyBorder(isConfigurable: Bool, isConfigured: Bool, isActive: Bool) -> Color {
+    private func keyBorder(isConfigurable: Bool, isConfigured: Bool, isActive: Bool, accent: PadColorAccent? = nil) -> Color {
+        let padAccent = accent ?? .none
+        if padAccent != .none && isConfigurable {
+            return padAccent.padBorder(isActive: isActive, isConfigured: isConfigured)
+        }
         if isActive {
             if isConfigured {
                 return Color.white.opacity(0.85)
@@ -596,6 +604,14 @@ struct ComputerKeyboardView: View {
         cfg.keyTrigger = label
         cfg.destinationOverrideUID = destUID
         cfg.destinationOverrideName = destName
+        appState.updateComputerKeyConfig(cfg, layer: layer)
+    }
+
+    private func assignColorAccent(_ accent: PadColorAccent?, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
+        var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
+        cfg.keyCode = keyCode
+        cfg.keyTrigger = label
+        cfg.colorAccent = (accent == .none) ? nil : accent
         appState.updateComputerKeyConfig(cfg, layer: layer)
     }
 
@@ -784,7 +800,20 @@ struct ComputerKeyboardView: View {
 
         Divider()
 
-        // 7. Clear
+        // 7. Color Accent Submenu
+        Menu("Color Accent") {
+            let activeAccent = currentConfig?.colorAccent ?? .none
+
+            ForEach(PadColorAccent.allCases) { accent in
+                MenuCheckButton(title: accent.displayName, isSelected: activeAccent == accent) {
+                    assignColorAccent(accent, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
+                }
+            }
+        }
+
+        Divider()
+
+        // 8. Clear
         Button("Clear Assignment (\(currentLayer.shortTitle))", role: .destructive) {
             appState.clearComputerKey(keyCode: keyCode, layer: currentLayer)
         }

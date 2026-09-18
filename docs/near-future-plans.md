@@ -73,3 +73,19 @@ public protocol MIDIProcessor: AnyObject {
 ```
 Events flow from:
 $$\text{Keyboard Input} \longrightarrow \text{Pipeline} \longrightarrow [\text{Device 1}] \longrightarrow [\text{Device 2}] \dots \longrightarrow \text{CoreMIDI Hardware/Virtual Output}$$
+
+---
+
+## 3. Scale Quantization & "Mute Out-of-Scale Keys"
+
+### Concept
+Lock the keyboard performance to a selected musical scale (Major, Minor, Dorian, Pentatonic, Blues, Harmonic Minor, etc.), ensuring dissonant notes cannot be struck accidentally during live play or recording.
+
+### Modes
+1. **Mute Out-of-Scale (Key Lock)**:
+   - Keys not belonging to the currently selected scale are visually dimmed/grayed out.
+   - Pressing a disabled key produces **no MIDI Note-On** and gives a subtle visual rejection/lock indication.
+   - Ideal for live soloing and improvisation where only valid notes should register.
+2. **Fold / Snap to Scale**:
+   - Out-of-scale physical keys are automatically quantized and snapped to the nearest in-scale semitone.
+   - All physical keys produce valid, harmonious notes.
