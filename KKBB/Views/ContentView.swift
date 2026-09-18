@@ -7,6 +7,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             TopBarView(appState: appState, showSettings: $showSettings)
+                .frame(height: 46)
 
             darkHDivider
 
@@ -17,11 +18,13 @@ struct ContentView: View {
                 darkVDivider
 
                 VStack(spacing: 0) {
-                    OctaveBarView(appState: appState)
+                    if appState.mode != .computerKeyboard {
+                        OctaveBarView(appState: appState)
 
-                    KnobsStripView(appState: appState)
+                        KnobsStripView(appState: appState)
 
-                    darkHDivider
+                        darkHDivider
+                    }
 
                     if appState.mode == .drumGrid {
                         DrumPadGridView(appState: appState)
@@ -30,7 +33,6 @@ struct ContentView: View {
                     } else if appState.mode == .computerKeyboard {
                         ComputerKeyboardView(appState: appState)
                             .frame(minHeight: 180, maxHeight: .infinity)
-                            .clipped()
                     } else {
                         PianoRollView(appState: appState)
                             .frame(minHeight: 120, maxHeight: .infinity)
