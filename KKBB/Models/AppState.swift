@@ -113,6 +113,8 @@ public final class AppState {
         }
     }
 
+    public var showSettingsModal: Bool = false
+
     public var activeChordPadIndex: Int? = nil
     public var activeDrumPadKeys: Set<String> = [] // Elements are "\(bank)_\(padIndex)"
     public var activeDrumPadCCToggles: Set<String> = [] // Elements are "\(bank)_\(padIndex)" for toggled ON CC pads
@@ -869,25 +871,34 @@ public final class AppState {
         DispatchQueue.main.async {
             for window in NSApp.windows where !window.isSheet {
                 if window.identifier?.rawValue == "main" || window.title.contains("KKBB") {
-                    var frame = window.frame
-                    let targetSize: CGSize
+                    let targetContentSize: CGSize
                     switch state {
                     case .full:
-                        targetSize = CGSize(
+                        targetContentSize = CGSize(
                             width: Swift.max(720, self.savedFullSize.width),
                             height: Swift.max(390, self.savedFullSize.height)
                         )
                     case .compact:
-                        let compactHeight: CGFloat = self.isMIDIMonitorVisible ? (self.isMIDIMonitorExpanded ? 275 : 195) : 170
-                        targetSize = CGSize(width: Swift.max(720, frame.width), height: compactHeight)
+                        if self.windowState != .compact && self.windowState != .micro {
+                            self.savedFullSize = window.contentView?.frame.size ?? window.frame.size
+                        }
+                        let compactHeight: CGFloat = (self.mode != .computerKeyboard ? 122 : 88) + 46 + (self.isMIDIMonitorExpanded ? 109 : 25)
+                        let currentWidth = window.contentView?.frame.width ?? window.frame.width
+                        targetContentSize = CGSize(width: Swift.max(720, currentWidth), height: compactHeight)
                     case .micro:
-                        targetSize = CGSize(width: 195, height: 195)
+                        if self.windowState != .micro {
+                            self.savedFullSize = window.contentView?.frame.size ?? window.frame.size
+                        }
+                        targetContentSize = CGSize(width: 195, height: 195)
                     }
 
-                    let diffY = targetSize.height - frame.height
-                    frame.origin.y -= diffY
-                    frame.size = targetSize
-                    window.setFrame(frame, display: true, animate: true)
+                    let contentRect = NSRect(origin: window.frame.origin, size: targetContentSize)
+                    let windowFrame = window.frameRect(forContentRect: contentRect)
+                    let diffY = windowFrame.height - window.frame.height
+                    var newFrame = windowFrame
+                    newFrame.origin.x = window.frame.origin.x
+                    newFrame.origin.y = window.frame.origin.y - diffY
+                    window.setFrame(newFrame, display: true, animate: true)
                 }
             }
         }

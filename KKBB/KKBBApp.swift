@@ -36,6 +36,13 @@ struct KKBBApp: App {
                 .keyboardShortcut("s", modifiers: [.command, .shift])
             }
 
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") {
+                    appState.showSettingsModal = true
+                }
+                .keyboardShortcut(",", modifiers: [.command])
+            }
+
             CommandGroup(after: .windowArrangement) {
                 Toggle("Always on Top", isOn: Binding(
                     get: { appState.isAlwaysOnTop },
@@ -61,17 +68,11 @@ struct KKBBApp: App {
 
                 Divider()
 
-                Toggle("MIDI Event Monitor", isOn: Binding(
-                    get: { appState.isMIDIMonitorVisible },
-                    set: { appState.isMIDIMonitorVisible = $0 }
-                ))
-                .keyboardShortcut("m", modifiers: [.command, .option])
-
                 Toggle("Expand Event Monitor", isOn: Binding(
                     get: { appState.isMIDIMonitorExpanded },
                     set: { appState.isMIDIMonitorExpanded = $0 }
                 ))
-                .disabled(!appState.isMIDIMonitorVisible)
+                .keyboardShortcut("m", modifiers: [.command, .option])
             }
 
             CommandMenu("Keyboard") {

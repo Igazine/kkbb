@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ContentView: View {
     @Bindable var appState: AppState
-    @State private var showSettings: Bool = false
 
     var body: some View {
         Group {
@@ -24,13 +23,13 @@ struct ContentView: View {
             minHeight: currentMinHeight,
             maxHeight: appState.windowState == .micro ? 195 : .infinity
         )
-        .sheet(isPresented: $showSettings) {
+        .sheet(isPresented: $appState.showSettingsModal) {
             SettingsView(appState: appState)
         }
         .background {
             // Hidden button to catch Cmd+, shortcut
             Button("") {
-                showSettings = true
+                appState.showSettingsModal = true
             }
             .keyboardShortcut(",", modifiers: .command)
             .focusable(false)
@@ -64,18 +63,18 @@ struct ContentView: View {
             return 195
         case .compact:
             let baseCompactHeight: CGFloat = (appState.mode != .computerKeyboard ? 122 : 88) + 46
-            let monitorHeight: CGFloat = appState.isMIDIMonitorVisible ? (appState.isMIDIMonitorExpanded ? 109 : 25) : 0
+            let monitorHeight: CGFloat = appState.isMIDIMonitorExpanded ? 109 : 25
             return baseCompactHeight + monitorHeight
         case .full:
             let baseFullHeight: CGFloat = (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330
-            let monitorHeight: CGFloat = appState.isMIDIMonitorVisible ? (appState.isMIDIMonitorExpanded ? 109 : 25) : 0
+            let monitorHeight: CGFloat = appState.isMIDIMonitorExpanded ? 109 : 25
             return baseFullHeight + monitorHeight
         }
     }
 
     private var fullLayout: some View {
         VStack(spacing: 0) {
-            TopBarView(appState: appState, showSettings: $showSettings)
+            TopBarView(appState: appState)
                 .frame(height: 46)
 
             darkHDivider
@@ -120,16 +119,14 @@ struct ContentView: View {
                 }
             )
 
-            if appState.isMIDIMonitorVisible {
-                darkHDivider
-                MIDIEventMonitorView(appState: appState)
-            }
+            darkHDivider
+            MIDIEventMonitorView(appState: appState)
         }
     }
 
     private var compactLayout: some View {
         VStack(spacing: 0) {
-            TopBarView(appState: appState, showSettings: $showSettings)
+            TopBarView(appState: appState)
                 .frame(height: 46)
 
             darkHDivider
@@ -155,10 +152,8 @@ struct ContentView: View {
                 }
             )
 
-            if appState.isMIDIMonitorVisible {
-                darkHDivider
-                MIDIEventMonitorView(appState: appState)
-            }
+            darkHDivider
+            MIDIEventMonitorView(appState: appState)
         }
     }
 

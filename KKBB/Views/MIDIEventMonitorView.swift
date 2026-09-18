@@ -61,20 +61,6 @@ public struct MIDIEventMonitorView: View {
                     .buttonStyle(.plain)
                     .foregroundColor(.secondary)
                     .help(appState.isMIDIMonitorExpanded ? "Collapse to Status Bar" : "Expand Event History")
-
-                    // Close / Hide Monitor
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.18)) {
-                            appState.isMIDIMonitorVisible = false
-                        }
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 9, weight: .semibold))
-                            .frame(width: 14, height: 14)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.secondary.opacity(0.8))
-                    .help("Hide MIDI Event Monitor (⌥⌘M)")
                 }
             }
             .padding(.horizontal, 10)
