@@ -30,6 +30,16 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 
 ---
 
+## Screenshots
+
+![1-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.20.46.png)
+![2-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.25.39.png)
+![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-17%20at%2019.26.37.png)
+![75-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.27.56.png)
+![101-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.28.11.png)
+
+---
+
 ## Interface Overview
 
 ```
@@ -253,16 +263,6 @@ KKBB features an intermediate pipeline separating note triggers and controllers 
 
 * **CoreMIDI Virtual Source**: The `"KKBB Virtual Output"` port automatically appears in any DAW MIDI input list without manual configuration.
 * **Clean State Transitions**: Switching modes, banks, or octave clears stuck notes, with an instant `Panic` button available via `Cmd + .` or top-bar control.
-
----
-
-## Screenshots
-
-![1-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.20.46.png)
-![2-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.25.39.png)
-![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-17%20at%2019.26.37.png)
-![75-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.27.56.png)
-![101-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.28.11.png)
 
 ---
 
