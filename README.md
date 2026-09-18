@@ -76,6 +76,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 * **7 Independent Banks (112 Total Pads)**: The octave bar acts as Bank 0–6 selector.
 * **Cross-Bank Playback**: All 112 pads remain actively triggerable by their assigned hot-keys regardless of which bank is currently displayed on screen.
 * **Pad Assignments via Right-Click**:
+  * **Rename Pad…**: Assign custom display name (e.g. `KICK`, `SNARE`, `808`). Shows custom label prominently in the pad center (whitespace-trimmed with auto-ellipsizing), while cleanly displaying the underlying musical note, chord, or CC trigger in the lower badge (e.g. `C4 Maj7`). Includes "Reset Pad Name" to revert.
   * **Hot-Key**: Interactive key recording sheet to assign any letter, number, or symbol.
   * **Root Note & Octave**: Note (C to B) and Octave (0 to 6).
   * **Chord Voicing**: No chord (single note), 14 chords, or 20 Bitwig scales.

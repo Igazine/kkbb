@@ -17,6 +17,7 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
     public var destinationOverrideUID: String? // nil = follow global, "virtual" = Virtual Only, "\(id)" = specific device
     public var destinationOverrideName: String? // display name for context menu / offline device
     public var colorAccent: PadColorAccent? // nil = default neutral
+    public var customLabel: String? // User-defined custom display name (e.g. "KICK", "SNARE")
 
     public static let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
@@ -35,7 +36,8 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
         channelOverride: Int? = nil,
         destinationOverrideUID: String? = nil,
         destinationOverrideName: String? = nil,
-        colorAccent: PadColorAccent? = nil
+        colorAccent: PadColorAccent? = nil,
+        customLabel: String? = nil
     ) {
         self.id = id
         self.bank = bank
@@ -52,6 +54,7 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
         self.destinationOverrideUID = destinationOverrideUID
         self.destinationOverrideName = destinationOverrideName
         self.colorAccent = colorAccent
+        self.customLabel = customLabel
     }
 
     public var isAssigned: Bool {

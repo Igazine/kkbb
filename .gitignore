@@ -28,3 +28,7 @@ Package.resolved
 .idea/
 *.swp
 *~
+
+# Internal Agent & Documentation
+.agents/
+docs/

@@ -22,6 +22,11 @@ public struct DrumPadGridView: View {
     @State private var customCCMode: CCBindingMode = .momentary
     @State private var customCCLabel: String = ""
 
+    // State for custom pad rename sheet
+    @State private var showRenameSheet: Bool = false
+    @State private var editingPadIndex: Int = 0
+    @State private var editingPadName: String = ""
+
     public init(appState: AppState) {
         self.appState = appState
     }
@@ -52,6 +57,9 @@ public struct DrumPadGridView: View {
         }
         .sheet(isPresented: $showCCConfigSheet) {
             customCCSheet
+        }
+        .sheet(isPresented: $showRenameSheet) {
+            padRenameSheet
         }
     }
 
@@ -126,8 +134,16 @@ public struct DrumPadGridView: View {
 
                 Spacer(minLength: 1)
 
-                // Center: CC Button, MIDI Command, Note & Octave, or Unassigned marker
-                if let cc = config?.ccConfig {
+                // Center: Custom Name, CC Button, MIDI Command, Note & Octave, or Unassigned marker
+                if let custom = config?.customLabel, !custom.isEmpty {
+                    Text(custom)
+                        .font(.system(size: 14, weight: .heavy, design: .rounded))
+                        .foregroundStyle(isActive ? Color.white : Color.primary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .minimumScaleFactor(0.65)
+                        .padding(.horizontal, 4)
+                } else if let cc = config?.ccConfig {
                     Text(cc.displayLabel)
                         .font(.system(size: 13, weight: .black, design: .rounded))
                         .foregroundStyle(isActive ? Color.white : Color.primary)
@@ -153,8 +169,42 @@ public struct DrumPadGridView: View {
 
                 Spacer(minLength: 1)
 
-                // Bottom: CC badge, Command category badge, or Chord badge if assigned
-                if let cc = config?.ccConfig {
+                // Bottom: Sub-badge when custom name is active, OR CC badge, Command category badge, Chord badge
+                if let custom = config?.customLabel, !custom.isEmpty {
+                    let subBadge: String = {
+                        if let cc = config?.ccConfig {
+                            return cc.displayBadge
+                        } else if let cmd = config?.midiCommand {
+                            return cmd.padBadge
+                        } else if let note = config?.fullNoteLabel {
+                            if let chord = config?.chordType {
+                                return "\(note) \(chord.shortName)"
+                            } else {
+                                return note
+                            }
+                        }
+                        return ""
+                    }()
+
+                    if !subBadge.isEmpty {
+                        Text(subBadge)
+                            .font(.system(size: 8.5, weight: .bold, design: .rounded))
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(isActive ? Color.white.opacity(0.25) : Color.secondary.opacity(0.15))
+                            )
+                            .foregroundStyle(isActive ? Color.white : Color.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .minimumScaleFactor(0.7)
+                            .padding(.bottom, 3)
+                    } else {
+                        Spacer(minLength: 0)
+                            .frame(height: 4)
+                    }
+                } else if let cc = config?.ccConfig {
                     Text(cc.displayBadge)
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
                         .padding(.horizontal, 4)
@@ -222,6 +272,23 @@ public struct DrumPadGridView: View {
     @ViewBuilder
     private func padContextMenu(padIndex: Int, config: DrumPadConfig?) -> some View {
         let bank = appState.octave
+
+        Button("Rename Pad…") {
+            editingPadIndex = padIndex
+            editingPadName = config?.customLabel ?? ""
+            showRenameSheet = true
+        }
+
+        if let custom = config?.customLabel, !custom.isEmpty {
+            Button("Reset Pad Name") {
+                if var existing = config {
+                    existing.customLabel = nil
+                    appState.updateDrumPadConfig(existing)
+                }
+            }
+        }
+
+        Divider()
 
         Button("Clear Pad Assignment") {
             appState.clearDrumPad(bank: bank, padIndex: padIndex)
@@ -774,5 +841,59 @@ public struct DrumPadGridView: View {
         }
         .padding(20)
         .frame(width: 380)
+    }
+
+    // MARK: - Custom Pad Rename Sheet
+    private var padRenameSheet: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 4) {
+                Text("Rename Pad \(editingPadIndex + 1)")
+                    .font(.headline)
+                Text("Bank \(appState.octave)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            TextField("Custom Name (e.g. KICK, SNARE, 808)", text: $editingPadName)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 260)
+                .onSubmit {
+                    commitPadRename()
+                }
+
+            HStack(spacing: 12) {
+                if !editingPadName.isEmpty {
+                    Button("Clear") {
+                        editingPadName = ""
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.red)
+                }
+
+                Spacer()
+
+                Button("Cancel") {
+                    showRenameSheet = false
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Button("Save") {
+                    commitPadRename()
+                }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(20)
+        .frame(width: 320)
+    }
+
+    private func commitPadRename() {
+        let trimmed = editingPadName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let bank = appState.octave
+        var current = appState.drumPadConfig(bank: bank, padIndex: editingPadIndex) ?? DrumPadConfig(bank: bank, padIndex: editingPadIndex)
+        current.customLabel = trimmed.isEmpty ? nil : trimmed
+        appState.updateDrumPadConfig(current)
+        showRenameSheet = false
     }
 }
