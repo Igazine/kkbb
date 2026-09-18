@@ -44,7 +44,7 @@ public final class KeyboardMonitor {
             self?.allNotesOff()
         }
 
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { [weak self] event in
             guard let self = self else { return event }
             if self.handleEvent(event) {
                 return nil // Handled, suppress system default behavior
@@ -71,38 +71,42 @@ public final class KeyboardMonitor {
     }
 
     private func disableSystemHotKeySuppression() {
-        if let token = hotKeyModeToken {
-            PopSymbolicHotKeyMode(token)
-            hotKeyModeToken = nil
-        }
+        guard let token = hotKeyModeToken else { return }
+        PopSymbolicHotKeyMode(token)
+        hotKeyModeToken = nil
     }
 
     private func handleEvent(_ event: NSEvent) -> Bool {
-        // 1. If key capture handler is active (e.g. recording a hotkey), give it exclusive priority!
-        if let capture = keyCaptureHandler {
-            if capture(event) {
-                return true
+        guard let appState = appState else { return false }
+
+        // 1. Update physical modifiers tracking
+        if event.type == .flagsChanged {
+            DispatchQueue.main.async {
+                appState.activePhysicalModifiers = event.modifierFlags
             }
             return false
         }
 
-        // 2. If any modal sheet is open on any window, let the sheet handle keystrokes
+        // 2. Interactive Key Recording (Modal Sheet)
+        if let capture = keyCaptureHandler {
+            return capture(event)
+        }
+
+        // 3. If any modal sheet is open on any window, let the sheet handle keystrokes
         for window in NSApp.windows {
             if window.isSheet || window.attachedSheet != nil {
                 return false
             }
         }
 
-        // 3. If an editable text field/view is the first responder, do not steal keys
+        // 4. If an editable text field/view is the first responder, do not steal keys
         if let responder = event.window?.firstResponder ?? NSApp.keyWindow?.firstResponder {
             if responder is NSText || responder is NSTextView || responder is NSTextField {
                 return false
             }
         }
 
-        guard let appState = appState else { return false }
-
-        // 4. Let critical system menu shortcuts pass through (Cmd+Q, Cmd+W, Cmd+H, Cmd+M, Cmd+,)
+        // 5. Let critical system menu shortcuts pass through (Cmd+Q, Cmd+W, Cmd+H, Cmd+M, Cmd+,)
         if event.modifierFlags.contains(.command) {
             if let chars = event.charactersIgnoringModifiers?.lowercased() {
                 if chars == "q" || chars == "w" || chars == "h" || chars == "m" || chars == "," {
@@ -115,8 +119,17 @@ public final class KeyboardMonitor {
             // In Computer Keyboard mode: route all physical keys directly to computer keyboard engine
             if appState.mode == .computerKeyboard {
                 if event.isARepeat { return true }
+                let flags = event.modifierFlags
+                let layer: ComputerKeyboardLayer
+                if flags.contains(.shift) {
+                    layer = .shift
+                } else if flags.contains(.option) {
+                    layer = .option
+                } else {
+                    layer = appState.computerKeyboardLayer
+                }
                 DispatchQueue.main.async {
-                    appState.triggerComputerKeyOn(keyCode: event.keyCode)
+                    appState.triggerComputerKeyOn(keyCode: event.keyCode, layer: layer)
                 }
                 return true
             }

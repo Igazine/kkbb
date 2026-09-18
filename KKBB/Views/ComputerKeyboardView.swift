@@ -326,15 +326,23 @@ struct ComputerKeyboardView: View {
         }
         .frame(width: width, height: height)
         .contentShape(Rectangle())
-        .onTapGesture {
-            if let code = key.keyCode, key.isConfigurable {
-                NSApp.keyWindow?.makeFirstResponder(nil)
-                appState.triggerComputerKeyOn(keyCode: code)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                    appState.triggerComputerKeyOff(keyCode: code)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    guard (NSEvent.pressedMouseButtons & 1) != 0 else { return }
+                    if let code = key.keyCode, key.isConfigurable {
+                        if !appState.isComputerKeyActive(keyCode: code) {
+                            NSApp.keyWindow?.makeFirstResponder(nil)
+                            appState.triggerComputerKeyOn(keyCode: code)
+                        }
+                    }
                 }
-            }
-        }
+                .onEnded { _ in
+                    if let code = key.keyCode, key.isConfigurable {
+                        appState.triggerComputerKeyOff(keyCode: code)
+                    }
+                }
+        )
         .contextMenu {
             if key.isConfigurable, let code = key.keyCode {
                 keyContextMenu(keyCode: code, label: key.label)
@@ -425,13 +433,19 @@ struct ComputerKeyboardView: View {
         }
         .frame(width: width, height: height)
         .contentShape(Rectangle())
-        .onTapGesture {
-            NSApp.keyWindow?.makeFirstResponder(nil)
-            appState.triggerComputerKeyOn(keyCode: keyCode)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                appState.triggerComputerKeyOff(keyCode: keyCode)
-            }
-        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    guard (NSEvent.pressedMouseButtons & 1) != 0 else { return }
+                    if !appState.isComputerKeyActive(keyCode: keyCode) {
+                        NSApp.keyWindow?.makeFirstResponder(nil)
+                        appState.triggerComputerKeyOn(keyCode: keyCode)
+                    }
+                }
+                .onEnded { _ in
+                    appState.triggerComputerKeyOff(keyCode: keyCode)
+                }
+        )
         .contextMenu {
             keyContextMenu(keyCode: keyCode, label: label)
         }
@@ -509,7 +523,7 @@ struct ComputerKeyboardView: View {
         return config.semitone == UInt8(semi) && config.octave == oct
     }
 
-    private func assignNote(semi: Int, octave: Int, keyCode: UInt16, label: String, current: DrumPadConfig?) {
+    private func assignNote(semi: Int, octave: Int, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
         var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
         cfg.keyCode = keyCode
         cfg.keyTrigger = label
@@ -517,28 +531,50 @@ struct ComputerKeyboardView: View {
         cfg.octave = octave
         cfg.midiCommand = nil
         cfg.ccConfig = nil
-        appState.updateComputerKeyConfig(cfg)
+        appState.updateComputerKeyConfig(cfg, layer: layer)
     }
 
-    private func assignChord(chordID: String, keyCode: UInt16, label: String, current: DrumPadConfig?) {
+    private func assignChord(chordID: String, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
         var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label, semitone: 0, octave: 3)
         cfg.chordTypeID = chordID
-        appState.updateComputerKeyConfig(cfg)
+        appState.updateComputerKeyConfig(cfg, layer: layer)
     }
 
-    private func assignMIDICommand(_ cmd: MIDICommandType, keyCode: UInt16, label: String, current: DrumPadConfig?) {
+    private func assignMIDICommand(_ cmd: MIDICommandType, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
         var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
         cfg.midiCommand = cmd
         cfg.ccConfig = nil
         cfg.semitone = nil
         cfg.octave = nil
-        appState.updateComputerKeyConfig(cfg)
+        appState.updateComputerKeyConfig(cfg, layer: layer)
+    }
+
+    private func assignCCPreset(_ preset: DrumPadCCConfig, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
+        var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
+        cfg.ccConfig = preset
+        cfg.midiCommand = nil
+        cfg.semitone = nil
+        cfg.octave = nil
+        appState.updateComputerKeyConfig(cfg, layer: layer)
     }
 
     // MARK: - Context Menu
     @ViewBuilder
     private func keyContextMenu(keyCode: UInt16, label: String) -> some View {
-        let currentConfig = appState.computerKeyConfig(keyCode: keyCode)
+        let currentLayer = appState.effectiveComputerKeyboardLayer
+        let currentConfig = appState.computerKeyConfig(keyCode: keyCode, layer: currentLayer)
+
+        Section("Layer: \(currentLayer.rawValue)") {
+            if currentLayer != .base {
+                if let baseConfig = appState.computerKeyConfig(keyCode: keyCode, layer: .base), baseConfig.isAssigned {
+                    Button("Copy from Base Layer") {
+                        appState.updateComputerKeyConfig(baseConfig, layer: currentLayer)
+                    }
+                }
+            }
+        }
+
+        Divider()
 
         // 1. Root Note & Octave
         Menu("Root Note & Octave") {
@@ -548,7 +584,7 @@ struct ComputerKeyboardView: View {
                         let name = DrumPadConfig.noteNames[semi]
                         let isSelected = isNoteSelected(config: currentConfig, semi: semi, oct: oct)
                         MenuCheckButton(title: "\(name)\(oct)", isSelected: isSelected) {
-                            assignNote(semi: semi, octave: oct, keyCode: keyCode, label: label, current: currentConfig)
+                            assignNote(semi: semi, octave: oct, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                         }
                     }
                 }
@@ -558,7 +594,7 @@ struct ComputerKeyboardView: View {
         // 2. Chord Voicings
         Menu("Chord Voicing") {
             MenuCheckButton(title: "No Chord (Single Note)", isSelected: currentConfig?.chordTypeID == nil || currentConfig?.chordTypeID == "none") {
-                assignChord(chordID: "none", keyCode: keyCode, label: label, current: currentConfig)
+                assignChord(chordID: "none", keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
             }
 
             Divider()
@@ -566,7 +602,7 @@ struct ComputerKeyboardView: View {
             Menu("Standard Chords") {
                 ForEach(ChordType.allTypes.filter { $0.category == .chords && $0.id != "none" }) { chord in
                     MenuCheckButton(title: chord.name, isSelected: currentConfig?.chordTypeID == chord.id) {
-                        assignChord(chordID: chord.id, keyCode: keyCode, label: label, current: currentConfig)
+                        assignChord(chordID: chord.id, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                     }
                 }
             }
@@ -574,7 +610,7 @@ struct ComputerKeyboardView: View {
             Menu("Bitwig Scales & Modes") {
                 ForEach(ChordType.allTypes.filter { $0.category == .scales }) { scale in
                     MenuCheckButton(title: scale.name, isSelected: currentConfig?.chordTypeID == scale.id) {
-                        assignChord(chordID: scale.id, keyCode: keyCode, label: label, current: currentConfig)
+                        assignChord(chordID: scale.id, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                     }
                 }
             }
@@ -587,7 +623,7 @@ struct ComputerKeyboardView: View {
             Menu("Real-Time Transport") {
                 ForEach(MIDICommandType.allCases.filter { $0.category == .realTime }) { cmd in
                     MenuCheckButton(title: cmd.displayName, isSelected: currentConfig?.midiCommand == cmd) {
-                        assignMIDICommand(cmd, keyCode: keyCode, label: label, current: currentConfig)
+                        assignMIDICommand(cmd, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                     }
                 }
             }
@@ -595,45 +631,43 @@ struct ComputerKeyboardView: View {
             Menu("MMC Transport (SysEx)") {
                 ForEach(MIDICommandType.allCases.filter { $0.category == .mmc }) { cmd in
                     MenuCheckButton(title: cmd.displayName, isSelected: currentConfig?.midiCommand == cmd) {
-                        assignMIDICommand(cmd, keyCode: keyCode, label: label, current: currentConfig)
+                        assignMIDICommand(cmd, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                     }
                 }
             }
 
-            Divider()
-
             MenuCheckButton(title: "All Notes Off (Panic)", isSelected: currentConfig?.midiCommand == .allNotesOff) {
-                assignMIDICommand(.allNotesOff, keyCode: keyCode, label: label, current: currentConfig)
+                assignMIDICommand(.allNotesOff, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
             }
         }
+
+        Divider()
 
         // 4. MIDI Control Change (CC)
         Menu("MIDI Control Change (CC)") {
             Menu("CC Presets") {
                 Button("Sustain Pedal (CC 64 · Momentary)") {
-                    assignCCPreset(.sustainMomentary, keyCode: keyCode, label: label, current: currentConfig)
+                    assignCCPreset(.sustainMomentary, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                 }
                 Button("Sustain Toggle (CC 64 · Toggle)") {
-                    assignCCPreset(.sustainToggle, keyCode: keyCode, label: label, current: currentConfig)
+                    assignCCPreset(.sustainToggle, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                 }
                 Divider()
                 Button("Mod Wheel Max (CC 1 · Momentary)") {
-                    assignCCPreset(.modMax, keyCode: keyCode, label: label, current: currentConfig)
+                    assignCCPreset(.modMax, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                 }
                 Button("Expression Max (CC 11 · Momentary)") {
-                    assignCCPreset(.expressionMax, keyCode: keyCode, label: label, current: currentConfig)
+                    assignCCPreset(.expressionMax, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                 }
                 Button("Volume Max (CC 7 · Trigger)") {
-                    assignCCPreset(.volumeFull, keyCode: keyCode, label: label, current: currentConfig)
+                    assignCCPreset(.volumeFull, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                 }
                 Button("Volume Mute (CC 7 · Trigger)") {
-                    assignCCPreset(.volumeMute, keyCode: keyCode, label: label, current: currentConfig)
+                    assignCCPreset(.volumeMute, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
                 }
             }
 
-            Divider()
-
-            Button("Configure Custom CC…") {
+            Button("Custom CC…") {
                 configuringKey = keyCode
                 configuringKeyLabel = label
                 if let cc = currentConfig?.ccConfig {
@@ -656,19 +690,10 @@ struct ComputerKeyboardView: View {
         Divider()
 
         // 5. Clear
-        Button("Clear Assignment", role: .destructive) {
-            appState.clearComputerKey(keyCode: keyCode)
+        Button("Clear Assignment (\(currentLayer.shortTitle))", role: .destructive) {
+            appState.clearComputerKey(keyCode: keyCode, layer: currentLayer)
         }
         .disabled(currentConfig?.isAssigned != true)
-    }
-
-    private func assignCCPreset(_ preset: DrumPadCCConfig, keyCode: UInt16, label: String, current: DrumPadConfig?) {
-        var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
-        cfg.ccConfig = preset
-        cfg.midiCommand = nil
-        cfg.semitone = nil
-        cfg.octave = nil
-        appState.updateComputerKeyConfig(cfg)
     }
 
     // MARK: - Custom CC Sheet
@@ -712,7 +737,8 @@ struct ComputerKeyboardView: View {
                         let label = customCCLabel.trimmingCharacters(in: .whitespaces).isEmpty ? nil : customCCLabel
 
                         let cc = DrumPadCCConfig(controller: ctrl, value: val, offValue: offVal, mode: customCCMode, customLabel: label)
-                        assignCCPreset(cc, keyCode: code, label: configuringKeyLabel, current: appState.computerKeyConfig(keyCode: code))
+                        let layer = appState.effectiveComputerKeyboardLayer
+                        assignCCPreset(cc, keyCode: code, label: configuringKeyLabel, current: appState.computerKeyConfig(keyCode: code, layer: layer), layer: layer)
                     }
                     showCCSheet = false
                 }

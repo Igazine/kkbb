@@ -13,25 +13,25 @@ struct KKBBApp: App {
         .defaultSize(width: 820, height: 420)
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("New Pad Grid Layout") {
-                    PadGridDocumentManager.shared.newLayout(for: appState)
+                Button("New Layout") {
+                    LayoutDocumentManager.shared.newLayout(for: appState)
                 }
                 .keyboardShortcut("n", modifiers: [.command])
 
-                Button("Open Pad Grid Layout…") {
-                    PadGridDocumentManager.shared.openLayout(for: appState)
+                Button("Open Layout…") {
+                    LayoutDocumentManager.shared.openLayout(for: appState)
                 }
                 .keyboardShortcut("o", modifiers: [.command])
             }
 
             CommandGroup(replacing: .saveItem) {
-                Button("Save Pad Grid Layout") {
-                    PadGridDocumentManager.shared.save(for: appState)
+                Button("Save Layout") {
+                    LayoutDocumentManager.shared.save(for: appState)
                 }
                 .keyboardShortcut("s", modifiers: [.command])
 
-                Button("Save Pad Grid Layout As…") {
-                    PadGridDocumentManager.shared.saveAs(for: appState)
+                Button("Save Layout As…") {
+                    LayoutDocumentManager.shared.saveAs(for: appState)
                 }
                 .keyboardShortcut("s", modifiers: [.command, .shift])
             }

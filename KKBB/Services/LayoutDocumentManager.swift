@@ -3,39 +3,39 @@ import Foundation
 import UniformTypeIdentifiers
 
 @MainActor
-public final class PadGridDocumentManager {
-    public static let shared = PadGridDocumentManager()
+public final class LayoutDocumentManager {
+    public static let shared = LayoutDocumentManager()
 
-    private let gridType = UTType(filenameExtension: "kkbbgrid") ?? .json
+    private let layoutType = UTType(filenameExtension: "kkbb") ?? .json
 
     private init() {}
 
     public func openLayout(for appState: AppState) {
         let panel = NSOpenPanel()
-        panel.title = "Open Pad Grid Layout"
+        panel.title = "Open Layout"
         panel.prompt = "Open"
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [gridType, .json]
+        panel.allowedContentTypes = [layoutType, .json]
 
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
 
         do {
-            try appState.loadPadGridLayout(from: url)
+            try appState.loadLayout(from: url)
         } catch {
             showErrorAlert(
                 title: "Failed to Open Layout",
-                message: "The selected file could not be read or is not a valid Pad Grid layout:\n\(error.localizedDescription)"
+                message: "The selected file could not be read or is not a valid KKBB layout:\n\(error.localizedDescription)"
             )
         }
     }
 
     public func save(for appState: AppState) {
-        if let existingURL = appState.currentPadGridURL {
+        if let existingURL = appState.currentLayoutURL {
             do {
-                try appState.savePadGridLayout(to: existingURL)
+                try appState.saveLayout(to: existingURL)
             } catch {
                 showErrorAlert(
                     title: "Failed to Save Layout",
@@ -49,19 +49,19 @@ public final class PadGridDocumentManager {
 
     public func saveAs(for appState: AppState) {
         let panel = NSSavePanel()
-        panel.title = "Save Pad Grid Layout As"
+        panel.title = "Save Layout As"
         panel.prompt = "Save"
         panel.canCreateDirectories = true
-        panel.allowedContentTypes = [gridType, .json]
-        
-        let initialName = appState.currentPadGridName ?? "PadGridLayout"
-        panel.nameFieldStringValue = "\(initialName).kkbbgrid"
+        panel.allowedContentTypes = [layoutType, .json]
+
+        let initialName = appState.currentLayoutName ?? "KKBBLayout"
+        panel.nameFieldStringValue = "\(initialName).kkbb"
 
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
 
         do {
-            try appState.savePadGridLayout(to: url)
+            try appState.saveLayout(to: url)
         } catch {
             showErrorAlert(
                 title: "Failed to Save Layout",
@@ -71,20 +71,22 @@ public final class PadGridDocumentManager {
     }
 
     public func newLayout(for appState: AppState) {
-        if !appState.activeProfile.drumPads.isEmpty {
+        let hasPads = !appState.activeProfile.drumPads.isEmpty
+        let hasKeys = !appState.activeProfile.computerKeyboardKeys.isEmpty
+
+        if hasPads || hasKeys {
             let alert = NSAlert()
-            alert.messageText = "Clear Pad Grid Layout?"
-            alert.informativeText = "This will clear all pad assignments across Banks 0–6. Any unsaved changes will be lost."
+            alert.messageText = "Clear Current Layout?"
+            alert.informativeText = "This will clear all custom pad and computer keyboard key assignments. Any unsaved changes will be lost."
             alert.alertStyle = .warning
             alert.addButton(withTitle: "Clear")
             alert.addButton(withTitle: "Cancel")
 
-            let response = alert.runModal()
-            if response == .alertFirstButtonReturn {
-                appState.clearAllDrumPads()
+            if alert.runModal() == .alertFirstButtonReturn {
+                appState.clearAllLayout()
             }
         } else {
-            appState.clearAllDrumPads()
+            appState.clearAllLayout()
         }
     }
 
@@ -93,7 +95,6 @@ public final class PadGridDocumentManager {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .critical
-        alert.addButton(withTitle: "OK")
         alert.runModal()
     }
 }
