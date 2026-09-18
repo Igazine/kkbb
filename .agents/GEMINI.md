@@ -12,13 +12,10 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 
 ## UI
 
-* A minimal, uncluttered bar at the top for settings and status information (aligned along bottom baseline):
-* * Modes (dropdown): 1-octave, 2-octave
-* * Output (dropdown): List of available MIDI devices (including virtual output)
-* * Channel (dropdown): 1-16
-* * One-Shot (checkbox): 50 ms trigger pulse mode without sustain (ideal for drum computers and samplers)
-* * Panic (button): All Notes Off
-* * Settings (button / ⌘,): Modal dialog for configuring profiles, note mappings, MIDI CC triggers, and dynamics
+* A 2-line minimal bar at the top for MIDI routing, system controls, and performance layout:
+* * Line 1 (MIDI & System): Output (dropdown), Channel (1–16), One-Shot (checkbox), Panic (button), and View State switcher ([ ⊞ | ▤ | ▫ ])
+* * Line 2 (Mode & Layout): Mode (dropdown: 1-Octave, 2-Octave, 4x4 Grid, Computer Keyboard); when in Computer Keyboard mode, includes Layout (MacBook 75% vs Full 101-Key) and Layer (Base, Shift ⇧, Option ⌥)
+* * Settings: Standard macOS App menu item (KKBB > Settings…, ⌘,) opening modal dialog for configuring profiles, note mappings, MIDI CC triggers, and dynamics
 * Left Control Strip:
 * * VEL (fader): Velocity slider (1–127) for fixed computer keyboard velocity
 * * PTCH (wheel): 14-bit Pitch Bend wheel (0...16383), spring-loaded to center (8192)

@@ -882,7 +882,7 @@ public final class AppState {
                         if self.windowState != .compact && self.windowState != .micro {
                             self.savedFullSize = window.contentView?.frame.size ?? window.frame.size
                         }
-                        let compactHeight: CGFloat = (self.mode != .computerKeyboard ? 122 : 88) + 46 + (self.isMIDIMonitorExpanded ? 109 : 25)
+                        let compactHeight: CGFloat = (self.mode != .computerKeyboard ? 122 : 88) + 62 + (self.isMIDIMonitorExpanded ? 109 : 25)
                         let currentWidth = window.contentView?.frame.width ?? window.frame.width
                         targetContentSize = CGSize(width: Swift.max(720, currentWidth), height: compactHeight)
                     case .micro:

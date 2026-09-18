@@ -62,11 +62,11 @@ struct ContentView: View {
         case .micro:
             return 195
         case .compact:
-            let baseCompactHeight: CGFloat = (appState.mode != .computerKeyboard ? 122 : 88) + 46
+            let baseCompactHeight: CGFloat = (appState.mode != .computerKeyboard ? 122 : 88) + 62
             let monitorHeight: CGFloat = appState.isMIDIMonitorExpanded ? 109 : 25
             return baseCompactHeight + monitorHeight
         case .full:
-            let baseFullHeight: CGFloat = (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330
+            let baseFullHeight: CGFloat = (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 406 : 346
             let monitorHeight: CGFloat = appState.isMIDIMonitorExpanded ? 109 : 25
             return baseFullHeight + monitorHeight
         }
@@ -75,7 +75,7 @@ struct ContentView: View {
     private var fullLayout: some View {
         VStack(spacing: 0) {
             TopBarView(appState: appState)
-                .frame(height: 46)
+                .frame(height: 62)
 
             darkHDivider
 
@@ -127,7 +127,7 @@ struct ContentView: View {
     private var compactLayout: some View {
         VStack(spacing: 0) {
             TopBarView(appState: appState)
-                .frame(height: 46)
+                .frame(height: 62)
 
             darkHDivider
 

@@ -46,8 +46,8 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Mode [2-Octave ▼]  Output [KKBB Virtual Output ▼]  Ch [1 ▼]  [✓] 1-Shot │
-│ [PANIC]  [Settings ⌘,]                                                 │
+│ MIDI Output [KKBB Virtual Only ▼]  Channel [1 ▼]  [✓] One-Shot  [Panic] │
+│ Mode [Computer Keyboard ▼]  Layout [MacBook (75%) ▼]  Layer [Base|⇧|⌥] │
 ├───────┬────────────────────────────────────────────────────────────────┤
 │       │  [0]  [1]  [2]  [3]  [4]  [5]  [6]   (Octave / Bank Selector)  │
 │ [VEL] ├────────────────────────────────────────────────────────────────┤
