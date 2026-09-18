@@ -18,7 +18,7 @@ struct TopBarView: View {
                         }
                     }
                     .labelsHidden()
-                    .frame(width: 100)
+                    .frame(width: 145)
                 }
 
                 // Output Destination

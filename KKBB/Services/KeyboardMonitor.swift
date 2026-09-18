@@ -177,6 +177,17 @@ public final class KeyboardMonitor {
                 return true
             }
 
+            // In Computer Keyboard mode: check if this physical key is assigned
+            if appState.mode == .computerKeyboard {
+                if let config = appState.computerKeyConfig(keyCode: event.keyCode), config.isAssigned {
+                    DispatchQueue.main.async {
+                        appState.triggerComputerKeyOn(keyCode: event.keyCode)
+                    }
+                    return true
+                }
+                return false
+            }
+
             // In Drum Grid mode: check all banks, giving priority to the visible bank
             if appState.mode == .drumGrid {
                 let currentBank = appState.octave
@@ -305,6 +316,16 @@ public final class KeyboardMonitor {
             return true
 
         } else if event.type == .keyUp {
+            if appState.mode == .computerKeyboard {
+                if let config = appState.computerKeyConfig(keyCode: event.keyCode), config.isAssigned {
+                    DispatchQueue.main.async {
+                        appState.triggerComputerKeyOff(keyCode: event.keyCode)
+                    }
+                    return true
+                }
+                return false
+            }
+
             if appState.mode == .drumGrid {
                 var handledDrumPad = false
                 for (_, cfg) in appState.activeProfile.drumPads {
@@ -391,6 +412,8 @@ public final class KeyboardMonitor {
             appState.activeNotes.removeAll()
             appState.pressedRootNotes.removeAll()
             appState.activeDrumPadKeys.removeAll()
+            appState.activeComputerKeys.removeAll()
+            appState.activeComputerCCToggles.removeAll()
         }
     }
 
@@ -414,7 +437,7 @@ public final class KeyboardMonitor {
                 let finalNote = Int(baseNote) + semitone
                 return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
             }
-        case .drumGrid:
+        case .drumGrid, .computerKeyboard:
             return nil
         }
         return nil

@@ -27,6 +27,10 @@ struct ContentView: View {
                         DrumPadGridView(appState: appState)
                             .frame(minHeight: 180, maxHeight: .infinity)
                             .clipped()
+                    } else if appState.mode == .computerKeyboard {
+                        ComputerKeyboardView(appState: appState)
+                            .frame(minHeight: 180, maxHeight: .infinity)
+                            .clipped()
                     } else {
                         PianoRollView(appState: appState)
                             .frame(minHeight: 120, maxHeight: .infinity)
@@ -45,7 +49,7 @@ struct ContentView: View {
                 }
             )
         }
-        .frame(minWidth: 720, minHeight: appState.mode == .drumGrid ? 390 : 330)
+        .frame(minWidth: 720, minHeight: (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330)
         .sheet(isPresented: $showSettings) {
             SettingsView(appState: appState)
         }

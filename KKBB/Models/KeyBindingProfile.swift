@@ -221,6 +221,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
     public var chordPads: [ChordPadConfig]
     public var customKeyChords: [UInt8: String] // Mapping MIDI note number -> ChordType.id
     public var drumPads: [String: DrumPadConfig] // Key is "\(bank)_\(padIndex)"
+    public var computerKeyboardKeys: [String: DrumPadConfig] // Key is "key_\(keyCode)"
 
     public var isDefault: Bool {
         return isReadOnly
@@ -237,7 +238,8 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         knobs: [KnobConfig] = KnobConfig.defaultKnobs,
         chordPads: [ChordPadConfig] = ChordPadConfig.defaultPads,
         customKeyChords: [UInt8: String] = [:],
-        drumPads: [String: DrumPadConfig] = [:]
+        drumPads: [String: DrumPadConfig] = [:],
+        computerKeyboardKeys: [String: DrumPadConfig] = [:]
     ) {
         self.id = id
         self.name = name
@@ -250,10 +252,11 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.chordPads = chordPads
         self.customKeyChords = customKeyChords
         self.drumPads = drumPads
+        self.computerKeyboardKeys = computerKeyboardKeys
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs, chordPads, customKeyChords, drumPads
+        case id, name, isReadOnly, oneOctaveNoteMap, twoOctaveNoteMap, ccBindings, mouseVerticalVelocityEnabled, knobs, chordPads, customKeyChords, drumPads, computerKeyboardKeys
     }
 
     public init(from decoder: Decoder) throws {
@@ -269,6 +272,7 @@ public struct KeyBindingProfile: Identifiable, Codable, Hashable {
         self.chordPads = try container.decodeIfPresent([ChordPadConfig].self, forKey: .chordPads) ?? ChordPadConfig.defaultPads
         self.customKeyChords = try container.decodeIfPresent([UInt8: String].self, forKey: .customKeyChords) ?? [:]
         self.drumPads = try container.decodeIfPresent([String: DrumPadConfig].self, forKey: .drumPads) ?? [:]
+        self.computerKeyboardKeys = try container.decodeIfPresent([String: DrumPadConfig].self, forKey: .computerKeyboardKeys) ?? [:]
     }
 
     public static let defaultProfile: KeyBindingProfile = {

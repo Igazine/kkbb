@@ -24,9 +24,9 @@ public final class AppState {
             defaults.set(mode.rawValue, forKey: "kkbb.mode")
             KeyboardMonitor.shared.allNotesOff()
             activeDrumPadKeys.removeAll()
-            if mode == .drumGrid {
-                DispatchQueue.main.async {
-                    if let window = NSApp.keyWindow ?? NSApp.windows.first(where: { !$0.isSheet }),
+            if mode == .drumGrid || mode == .computerKeyboard {
+                for window in NSApp.windows {
+                    if (window.identifier?.rawValue == "main" || window.title.contains("KKBB")),
                        window.frame.height < 400 {
                         var frame = window.frame
                         let diff = 400 - frame.height
@@ -103,9 +103,17 @@ public final class AppState {
     }
     public var currentPadGridName: String?
 
+    public var computerKeyboardType: ComputerKeyboardType = .macbook
+    public var activeComputerKeys: Set<UInt16> = []
+    public var activeComputerCCToggles: Set<UInt16> = []
+
     public func isDrumPadActive(bank: Int, padIndex: Int) -> Bool {
         let key = "\(bank)_\(padIndex)"
         return activeDrumPadKeys.contains(key) || activeDrumPadCCToggles.contains(key)
+    }
+
+    public func isComputerKeyActive(keyCode: UInt16) -> Bool {
+        return activeComputerKeys.contains(keyCode) || activeComputerCCToggles.contains(keyCode)
     }
 
     public var activeChordType: ChordType? {
@@ -221,6 +229,126 @@ public final class AppState {
             if let encoded = try? JSONEncoder().encode(activeProfile.drumPads) {
                 defaults.set(encoded, forKey: "kkbb.defaultDrumPads")
             }
+        }
+    }
+
+    // MARK: - Computer Keyboard Management
+    public func computerKeyConfig(keyCode: UInt16) -> DrumPadConfig? {
+        let key = "key_\(keyCode)"
+        return activeProfile.computerKeyboardKeys[key]
+    }
+
+    public func updateComputerKeyConfig(_ config: DrumPadConfig) {
+        guard let keyCode = config.keyCode else { return }
+        let key = "key_\(keyCode)"
+        activeProfile.computerKeyboardKeys[key] = config
+        saveComputerKeys()
+    }
+
+    public func clearComputerKey(keyCode: UInt16) {
+        let key = "key_\(keyCode)"
+        activeComputerCCToggles.remove(keyCode)
+        activeComputerKeys.remove(keyCode)
+        activeProfile.computerKeyboardKeys.removeValue(forKey: key)
+        saveComputerKeys()
+    }
+
+    public func clearAllComputerKeys() {
+        activeComputerCCToggles.removeAll()
+        activeComputerKeys.removeAll()
+        activeProfile.computerKeyboardKeys.removeAll()
+        saveComputerKeys()
+    }
+
+    private func saveComputerKeys() {
+        if !activeProfile.isDefault {
+            updateActiveProfile()
+        } else {
+            if let encoded = try? JSONEncoder().encode(activeProfile.computerKeyboardKeys) {
+                defaults.set(encoded, forKey: "kkbb.defaultComputerKeys")
+            }
+        }
+    }
+
+    public func triggerComputerKeyOn(keyCode: UInt16, velocityOverride: UInt8? = nil) {
+        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else { return }
+
+        // Handle MIDI Command (Transport / Panic)
+        if let cmd = config.midiCommand {
+            activeComputerKeys.insert(keyCode)
+            MIDIManager.shared.sendCommand(cmd, channel: channel, destinationUID: selectedDestinationUID)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+                self?.activeComputerKeys.remove(keyCode)
+            }
+            return
+        }
+
+        // Handle MIDI CC Button / Trigger
+        if let cc = config.ccConfig {
+            switch cc.mode {
+            case .trigger:
+                activeComputerKeys.insert(keyCode)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+                    self?.activeComputerKeys.remove(keyCode)
+                }
+            case .momentary:
+                activeComputerKeys.insert(keyCode)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+            case .toggle:
+                if activeComputerCCToggles.contains(keyCode) {
+                    activeComputerCCToggles.remove(keyCode)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+                } else {
+                    activeComputerCCToggles.insert(keyCode)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                }
+            }
+            return
+        }
+
+        // Handle MIDI Note / Chord
+        let notes = config.notesToSend
+        guard !notes.isEmpty else { return }
+
+        activeComputerKeys.insert(keyCode)
+        let vel = velocityOverride ?? UInt8(velocity)
+
+        for n in notes {
+            MIDIPipeline.shared.sendNoteOn(note: n, velocity: vel, channel: channel, destinationUID: selectedDestinationUID)
+            activeNotes.insert(n)
+        }
+        if let root = config.midiNote {
+            pressedRootNotes.insert(root)
+        }
+
+        if isOneShotMode {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                guard let self = self else { return }
+                self.triggerComputerKeyOff(keyCode: keyCode)
+            }
+        }
+    }
+
+    public func triggerComputerKeyOff(keyCode: UInt16) {
+        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else { return }
+
+        // Momentary CC release
+        if let cc = config.ccConfig, cc.mode == .momentary {
+            activeComputerKeys.remove(keyCode)
+            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+            return
+        }
+
+        activeComputerKeys.remove(keyCode)
+
+        let notes = config.notesToSend
+        for n in notes {
+            MIDIPipeline.shared.sendNoteOff(note: n, channel: channel, destinationUID: selectedDestinationUID)
+            activeNotes.remove(n)
+        }
+        if let root = config.midiNote {
+            pressedRootNotes.remove(root)
         }
     }
 
@@ -385,6 +513,10 @@ public final class AppState {
             if let drumData = defaults.data(forKey: "kkbb.defaultDrumPads"),
                let customDrums = try? JSONDecoder().decode([String: DrumPadConfig].self, from: drumData) {
                 defaultProf.drumPads = customDrums
+            }
+            if let computerKeyData = defaults.data(forKey: "kkbb.defaultComputerKeys"),
+               let customKeys = try? JSONDecoder().decode([String: DrumPadConfig].self, from: computerKeyData) {
+                defaultProf.computerKeyboardKeys = customKeys
             }
             self.activeProfile = defaultProf
         }
