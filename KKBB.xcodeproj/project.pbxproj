@@ -33,10 +33,11 @@
 		10000024 /* DrumPadGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000024 /* DrumPadGridView.swift */; };
 		10000025 /* MIDICommandType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000025 /* MIDICommandType.swift */; };
 		10000026 /* DrumPadCCConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000026 /* DrumPadCCConfig.swift */; };
-		10000027 /* PadGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000027 /* PadGridLayout.swift */; };
-		10000028 /* PadGridDocumentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000028 /* PadGridDocumentManager.swift */; };
+		10000027 /* KKBBLayoutBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000027 /* KKBBLayoutBundle.swift */; };
+		10000028 /* LayoutDocumentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000028 /* LayoutDocumentManager.swift */; };
 		10000029 /* ComputerKeyboardType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000029 /* ComputerKeyboardType.swift */; };
 		10000030 /* ComputerKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000030 /* ComputerKeyboardView.swift */; };
+		10000031 /* ComputerKeyboardLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000031 /* ComputerKeyboardLayer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,10 +68,11 @@
 		20000024 /* DrumPadGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadGridView.swift; sourceTree = "<group>"; };
 		20000025 /* MIDICommandType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDICommandType.swift; sourceTree = "<group>"; };
 		20000026 /* DrumPadCCConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadCCConfig.swift; sourceTree = "<group>"; };
-		20000027 /* PadGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadGridLayout.swift; sourceTree = "<group>"; };
-		20000028 /* PadGridDocumentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadGridDocumentManager.swift; sourceTree = "<group>"; };
+		20000027 /* KKBBLayoutBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KKBBLayoutBundle.swift; sourceTree = "<group>"; };
+		20000028 /* LayoutDocumentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutDocumentManager.swift; sourceTree = "<group>"; };
 		20000029 /* ComputerKeyboardType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardType.swift; sourceTree = "<group>"; };
 		20000030 /* ComputerKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardView.swift; sourceTree = "<group>"; };
+		20000031 /* ComputerKeyboardLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardLayer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,8 +120,9 @@
 				20000023 /* DrumPadConfig.swift */,
 				20000025 /* MIDICommandType.swift */,
 				20000026 /* DrumPadCCConfig.swift */,
-				20000027 /* PadGridLayout.swift */,
+				20000027 /* KKBBLayoutBundle.swift */,
 				20000029 /* ComputerKeyboardType.swift */,
+				20000031 /* ComputerKeyboardLayer.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -139,7 +142,7 @@
 			children = (
 				20000005 /* MIDIManager.swift */,
 				20000006 /* KeyboardMonitor.swift */,
-				20000028 /* PadGridDocumentManager.swift */,
+				20000028 /* LayoutDocumentManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -270,10 +273,11 @@
 				10000024 /* DrumPadGridView.swift in Sources */,
 				10000025 /* MIDICommandType.swift in Sources */,
 				10000026 /* DrumPadCCConfig.swift in Sources */,
-				10000027 /* PadGridLayout.swift in Sources */,
-				10000028 /* PadGridDocumentManager.swift in Sources */,
+				10000027 /* KKBBLayoutBundle.swift in Sources */,
+				10000028 /* LayoutDocumentManager.swift in Sources */,
 				10000029 /* ComputerKeyboardType.swift in Sources */,
 				10000030 /* ComputerKeyboardView.swift in Sources */,
+				10000031 /* ComputerKeyboardLayer.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

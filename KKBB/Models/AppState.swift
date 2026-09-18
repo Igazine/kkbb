@@ -96,16 +96,35 @@ public final class AppState {
     public var activeDrumPadKeys: Set<String> = [] // Elements are "\(bank)_\(padIndex)"
     public var activeDrumPadCCToggles: Set<String> = [] // Elements are "\(bank)_\(padIndex)" for toggled ON CC pads
 
-    public var currentPadGridURL: URL? {
+    public var currentLayoutURL: URL? {
         didSet {
-            currentPadGridName = currentPadGridURL?.deletingPathExtension().lastPathComponent
+            currentLayoutName = currentLayoutURL?.deletingPathExtension().lastPathComponent
         }
     }
-    public var currentPadGridName: String?
+    public var currentLayoutName: String?
+    public var currentPadGridName: String? {
+        get { currentLayoutName }
+        set { currentLayoutName = newValue }
+    }
 
     public var computerKeyboardType: ComputerKeyboardType = .macbook
+    public var computerKeyboardLayer: ComputerKeyboardLayer = .base
+    public var activePhysicalModifiers: NSEvent.ModifierFlags = []
+
+    public var effectiveComputerKeyboardLayer: ComputerKeyboardLayer {
+        if activePhysicalModifiers.contains(.shift) {
+            return .shift
+        }
+        if activePhysicalModifiers.contains(.option) {
+            return .option
+        }
+        return computerKeyboardLayer
+    }
+
     public var activeComputerKeys: Set<UInt16> = []
     public var activeComputerCCToggles: Set<UInt16> = []
+    private var activeComputerKeyNotes: [UInt16: [UInt8]] = [:]
+    private var activeComputerKeyCC: [UInt16: DrumPadCCConfig] = [:]
 
     public func isDrumPadActive(bank: Int, padIndex: Int) -> Bool {
         let key = "\(bank)_\(padIndex)"
@@ -198,28 +217,63 @@ public final class AppState {
         activeDrumPadKeys.removeAll()
         activeProfile.drumPads.removeAll()
         saveDrumPads()
-        currentPadGridURL = nil
+        currentLayoutURL = nil
     }
 
-    public func savePadGridLayout(to url: URL) throws {
+    public func saveLayout(to url: URL) throws {
         let layoutName = url.deletingPathExtension().lastPathComponent
-        let layout = PadGridLayout(name: layoutName, drumPads: activeProfile.drumPads)
+        let layout = KKBBLayoutBundle(
+            name: layoutName,
+            mode: mode,
+            drumPads: activeProfile.drumPads,
+            computerKeyboardKeys: activeProfile.computerKeyboardKeys,
+            computerKeyboardType: computerKeyboardType,
+            computerKeyboardLayer: computerKeyboardLayer
+        )
         let data = try layout.encode()
         try data.write(to: url, options: .atomic)
-        currentPadGridURL = url
+        currentLayoutURL = url
     }
 
-    public func loadPadGridLayout(from url: URL) throws {
+    public func loadLayout(from url: URL) throws {
         let data = try Data(contentsOf: url)
-        let layout = try PadGridLayout.decode(from: data)
+        let layout = try KKBBLayoutBundle.decode(from: data)
+        if let pads = layout.drumPads {
+            activeDrumPadCCToggles.removeAll()
+            activeDrumPadKeys.removeAll()
+            activeProfile.drumPads = pads
+            saveDrumPads()
+        }
+        if let keys = layout.computerKeyboardKeys {
+            activeComputerCCToggles.removeAll()
+            activeComputerKeys.removeAll()
+            activeProfile.computerKeyboardKeys = keys
+            saveComputerKeys()
+        }
+        if let kbType = layout.computerKeyboardType {
+            computerKeyboardType = kbType
+        }
+        if let kbLayer = layout.computerKeyboardLayer {
+            computerKeyboardLayer = kbLayer
+        }
+        if let savedMode = layout.mode {
+            mode = savedMode
+        }
+        currentLayoutURL = url
+    }
+
+    public func clearAllLayout() {
         activeDrumPadCCToggles.removeAll()
         activeDrumPadKeys.removeAll()
-        activeProfile.drumPads = layout.drumPads
+        activeProfile.drumPads.removeAll()
         saveDrumPads()
-        currentPadGridURL = url
-        if mode != .drumGrid {
-            mode = .drumGrid
-        }
+
+        activeComputerCCToggles.removeAll()
+        activeComputerKeys.removeAll()
+        activeProfile.computerKeyboardKeys.removeAll()
+        saveComputerKeys()
+
+        currentLayoutURL = nil
     }
 
     private func saveDrumPads() {
@@ -233,20 +287,23 @@ public final class AppState {
     }
 
     // MARK: - Computer Keyboard Management
-    public func computerKeyConfig(keyCode: UInt16) -> DrumPadConfig? {
-        let key = "key_\(keyCode)"
+    public func computerKeyConfig(keyCode: UInt16, layer: ComputerKeyboardLayer? = nil) -> DrumPadConfig? {
+        let targetLayer = layer ?? effectiveComputerKeyboardLayer
+        let key = ComputerKeyboardLayer.storageKey(for: keyCode, layer: targetLayer)
         return activeProfile.computerKeyboardKeys[key]
     }
 
-    public func updateComputerKeyConfig(_ config: DrumPadConfig) {
+    public func updateComputerKeyConfig(_ config: DrumPadConfig, layer: ComputerKeyboardLayer? = nil) {
         guard let keyCode = config.keyCode else { return }
-        let key = "key_\(keyCode)"
+        let targetLayer = layer ?? effectiveComputerKeyboardLayer
+        let key = ComputerKeyboardLayer.storageKey(for: keyCode, layer: targetLayer)
         activeProfile.computerKeyboardKeys[key] = config
         saveComputerKeys()
     }
 
-    public func clearComputerKey(keyCode: UInt16) {
-        let key = "key_\(keyCode)"
+    public func clearComputerKey(keyCode: UInt16, layer: ComputerKeyboardLayer? = nil) {
+        let targetLayer = layer ?? effectiveComputerKeyboardLayer
+        let key = ComputerKeyboardLayer.storageKey(for: keyCode, layer: targetLayer)
         activeComputerCCToggles.remove(keyCode)
         activeComputerKeys.remove(keyCode)
         activeProfile.computerKeyboardKeys.removeValue(forKey: key)
@@ -270,10 +327,11 @@ public final class AppState {
         }
     }
 
-    public func triggerComputerKeyOn(keyCode: UInt16, velocityOverride: UInt8? = nil) {
+    public func triggerComputerKeyOn(keyCode: UInt16, velocityOverride: UInt8? = nil, layer: ComputerKeyboardLayer? = nil) {
         activeComputerKeys.insert(keyCode)
 
-        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else {
+        let targetLayer = layer ?? effectiveComputerKeyboardLayer
+        guard let config = computerKeyConfig(keyCode: keyCode, layer: targetLayer), config.isAssigned else {
             // Unassigned key: visual border feedback only, no MIDI transmitted
             return
         }
@@ -289,6 +347,7 @@ public final class AppState {
 
         // Handle MIDI CC Button / Trigger
         if let cc = config.ccConfig {
+            activeComputerKeyCC[keyCode] = cc
             switch cc.mode {
             case .trigger:
                 MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
@@ -313,6 +372,7 @@ public final class AppState {
         let notes = config.notesToSend
         guard !notes.isEmpty else { return }
 
+        activeComputerKeyNotes[keyCode] = notes
         let vel = velocityOverride ?? UInt8(velocity)
 
         for n in notes {
@@ -326,19 +386,35 @@ public final class AppState {
         if isOneShotMode {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
                 guard let self = self else { return }
-                self.triggerComputerKeyOff(keyCode: keyCode)
+                self.triggerComputerKeyOff(keyCode: keyCode, layer: targetLayer)
             }
         }
     }
 
-    public func triggerComputerKeyOff(keyCode: UInt16) {
+    public func triggerComputerKeyOff(keyCode: UInt16, layer: ComputerKeyboardLayer? = nil) {
         activeComputerKeys.remove(keyCode)
 
-        guard let config = computerKeyConfig(keyCode: keyCode), config.isAssigned else {
+        // If momentary CC was active for this keyCode, release it
+        if let cc = activeComputerKeyCC.removeValue(forKey: keyCode), cc.mode == .momentary {
+            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
             return
         }
 
-        // Momentary CC release
+        // If notes were active for this keyCode, release them
+        if let notes = activeComputerKeyNotes.removeValue(forKey: keyCode) {
+            for n in notes {
+                MIDIPipeline.shared.sendNoteOff(note: n, channel: channel, destinationUID: selectedDestinationUID)
+                activeNotes.remove(n)
+            }
+            return
+        }
+
+        // Fallback: check config in specified layer or effective layer
+        let targetLayer = layer ?? effectiveComputerKeyboardLayer
+        guard let config = computerKeyConfig(keyCode: keyCode, layer: targetLayer), config.isAssigned else {
+            return
+        }
+
         if let cc = config.ccConfig, cc.mode == .momentary {
             MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
             return

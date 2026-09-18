@@ -61,15 +61,17 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Pad labels show assigned Key combination, Note + Octave (e.g. C1), Command Badge (e.g. ▶ PLAY, ■ STOP, ❚❚ PAUSE, ● REC), or CC Label (e.g. CC 64, SUSTAIN), along with sub-badge (e.g. m7, REALTIME, MMC, SYS, CC·MOM, CC·TOG, CC·TRG); unassigned pads display empty
 * * Visual Feedback: Active pad glows in accent blue upon physical keyboard press, mouse trigger, or when locked in CC Toggle ON state
 * * Mode Isolation: When in 4x4 Grid mode, piano roll keyboard triggers are bypassed; when in piano modes, drum grid triggers are bypassed
-* * Layout Save & Load: Save and load complete 4x4 Pad Grid setups (all 112 pads across Banks 0–6) to and from local files (`.kkbbgrid` / `.json`) via File menu commands (New `⌘N`, Open `⌘O`, Save `⌘S`, Save As `⇧⌘S`). Automatically switches to Grid mode on load and displays layout name in window subtitle.
+* * Unified Layout Save & Load: Save and load complete performance setups (including 4x4 Pad Grid setups across Banks 0–6, Computer Keyboard layouts, sub-layouts, and modifier layers) to and from unified local files (`.kkbb` / `.json`) via File menu commands (New `⌘N`, Open `⌘O`, Save `⌘S`, Save As `⇧⌘S`). Automatically restores mode and displays layout name in window subtitle.
 * Alternate Layout (Computer Keyboard):
 * * Selectable via Mode dropdown ("Computer Keyboard"); renders an interactive, 1:1 visual computer keyboard layout with assignable performance keys.
-* * Sub-Layout Selector (Segmented Picker): "MacBook (75%)" and "Full 101-Key" (includes Navigation cluster and full Numpad).
+* * Sub-Layout Selector (Segmented Picker): "MacBook (75%)" and "Full 101-Key" (includes complete 6-key Navigation cluster with `Ins` (114) & `Del` (117), and full Numpad).
+* * Modifier Layers: Performance keys support 3 independent layers—Base, Shift (`⇧`), and Option (`⌥`). Selected via top-bar segmented picker or live-previewed dynamically upon holding physical `Shift` or `Option` keys.
 * * Proportionally Scalable Geometry: Dynamically scales key widths and heights to fit within the default window footprint (well under 1000×600 px) without scrollbars.
 * * Passive Modifier Distinction: Non-configurable system modifiers (`Cmd`, `Ctrl`, `Opt`, `Fn`, `Caps Lock`) are dimmed in soft passive opacity (~18–40%), while configurable keys are rendered prominently with clear contrast.
-* * Fully Customizable Performance Keys: Right-click context menu assigns Root Note (C to B), Octave (0 to 6), Chord Voicing (No Chord, 14 standard chords, 20 Bitwig scales), MIDI Command (Real-Time Transport, MMC SysEx, All Notes Off), or MIDI Control Change (CC presets & custom CC sheet).
-* * Real-Time Visual Feedback & Mouse Triggering: Keys glow in accent blue upon physical keyboard press, mouse tap, or when held in CC Toggle ON state.
-* * Profile Persistence: Computer keyboard key configurations are automatically persisted in the active `KeyBindingProfile` JSON structure under `computerKeyboardKeys`.
+* * Fully Customizable Performance Keys: Right-click context menu assigns Root Note (C to B), Octave (0 to 6), Chord Voicing (No Chord, 14 standard chords, 20 Bitwig scales), MIDI Command (Real-Time Transport, MMC SysEx, All Notes Off), or MIDI Control Change (CC presets & custom CC sheet) for the active layer. Includes "Copy from Base Layer" convenience.
+* * Instant DragGesture Mouse Triggering: Mouse clicks on keycaps trigger Note-On/CC immediately on press, sustain while held, and release on mouse up.
+* * Visual Feedback: Active key glows with solid blue fill when assigned; unassigned configurable keys display an accent blue border with blue glow and no MIDI output.
+* * Profile Persistence: Computer keyboard key configurations across all layers are automatically persisted in the active `KeyBindingProfile` JSON structure under `computerKeyboardKeys`.
 
 ## Tech Stack
 

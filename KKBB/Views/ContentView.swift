@@ -78,11 +78,11 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .midiDestinationsChanged)) { _ in
             refreshDestinations()
         }
-        .onChange(of: appState.currentPadGridName) { _, newName in
+        .onChange(of: appState.currentLayoutName) { _, newName in
             updateWindowSubtitle(newName)
         }
         .onChange(of: appState.mode) { _, _ in
-            updateWindowSubtitle(appState.currentPadGridName)
+            updateWindowSubtitle(appState.currentLayoutName)
         }
     }
 
@@ -90,7 +90,7 @@ struct ContentView: View {
         DispatchQueue.main.async {
             for window in NSApp.windows {
                 if window.identifier?.rawValue == "main" || window.title.contains("KKBB") {
-                    window.subtitle = (appState.mode == .drumGrid && name != nil) ? name! : ""
+                    window.subtitle = name ?? ""
                 }
             }
         }

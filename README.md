@@ -73,19 +73,23 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * **MIDI CC Buttons**:
     * **Presets**: Sustain Momentary, Sustain Toggle, Mod Wheel Max, Expression Max, Volume Max, Volume Mute, All Sound Off, Panic CC.
     * **Custom CC Sheet**: User-defined Controller # (0–127), Target/On Value (0–127), Off Value (0–127), and Mode (**Momentary**, **Toggle** with persistent visual lock, or **Trigger**).
-* **Layout Save & Load**: Save and load complete 112-pad rigs across Banks 0–6 to/from local `.kkbbgrid` or `.json` files via the **File** menu. Auto-switches to Grid mode on load and shows the file name in the window subtitle.
+* **Unified Layout Save & Load**: Save and load complete performance setups (including 112-pad setups across Banks 0–6, Computer Keyboard layouts, sub-layouts, and modifier layers) to/from unified local `.kkbb` or `.json` files via the **File** menu. Displays the layout name in the window subtitle.
 
 ### 3. Computer Keyboard Mode
 * **1:1 Visual Computer Keyboard**: An on-screen rendering of your Mac's computer keyboard where individual keys can be custom assigned to notes, chords, transport commands, and CC controls.
 * **Dual Layout Selection**:
-  * **MacBook (75%)**: Standard ANSI compact laptop layout with arrow keys and function row.
-  * **Full 101-Key**: Extended layout featuring dedicated Navigation cluster (Insert, Delete, Home, End, Page Up, Page Down) and full Numpad.
+  * **MacBook (75%)**: Standard ANSI compact laptop layout with split arrow keys and function row.
+  * **Full 101-Key**: Extended layout featuring a complete 6-key Navigation cluster (Insert `114`, Delete `117`, Home, End, Page Up, Page Down) and full Numpad.
+* **Modifier Layers**: Supports 3 independent performance layers—**Base**, **Shift (`⇧`)**, and **Option (`⌥`)**. Easily switch layers in the top bar, or hold down physical `Shift` / `Option` to dynamically live-preview that layer while playing.
 * **Proportionally Scaled Design**: Geometry automatically scales smoothly to fit the compact window footprint without requiring huge screen real estate or horizontal scrollbars.
 * **Passive vs. Configurable Keys**:
-  * **Dimmed Modifiers**: System keys (`Cmd`, `Ctrl`, `Opt`, `Fn`, `Caps Lock`) are rendered with soft, passive opacity (~18–40%) to clearly distinguish non-configurable modifiers.
-  * **Prominent Performance Keys**: Active keys feature distinct styling and assignment badges showing Root Note, Chord name, MIDI Command, or CC controller.
-* **Right-Click Assignment**: Right-click any configurable key to assign Root Note & Octave, Voicing (14 chords, 20 Bitwig scales), MIDI Real-Time/MMC commands, or MIDI CC triggers.
-* **Real-Time Visual Feedback**: Active keys illuminate in accent blue on physical key presses, mouse clicks, or when locked in CC Toggle mode.
+  * **Dimmed Modifiers**: Non-configurable system keys (`Cmd`, `Ctrl`, `Opt`, `Fn`, `Caps Lock`) are rendered with soft, passive opacity (~18–40%).
+  * **Prominent Performance Keys**: Configurable keys feature crisp styling and badges showing Root Note, Chord voicing, MIDI Command, or CC controller.
+* **Instant Mouse Drag & Visual Feedback**:
+  * Mouse clicks on keys trigger Note-On / CC immediately on mouse down, sustain while held, and release on mouse up.
+  * Configured keys illuminate in accent blue on physical key presses, mouse clicks, or when locked in CC Toggle mode.
+  * Unassigned configurable keys glow with an accent blue border stroke and no MIDI output, giving instant visual feedback for international keyboard layouts.
+* **Right-Click Assignment**: Right-click any configurable key to assign Root Note & Octave, Voicing (14 chords, 20 Bitwig scales), MIDI Real-Time/MMC commands, or MIDI CC triggers for the active layer, with a "Copy from Base Layer" option.
 
 ---
 
@@ -115,10 +119,10 @@ Positioned directly below the piano roll, these 12 pads provide instant chord ha
 | **Velocity +10** | `Shift` + `→` | Increases fixed keyboard velocity by 10 |
 | **Sustain Pedal** | `Space` *(piano modes)* | CC #64 Sustain momentary trigger (unless Space is assigned to a pad) |
 | **Chord Pads 1–12** | `F1`–`F12` | Toggle Chord Voicing / Scale Pads 1–12 |
-| **New Pad Grid Layout** | `⌘` + `N` | Clears all pad assignments across Banks 0–6 |
-| **Open Pad Grid Layout…** | `⌘` + `O` | Opens `.kkbbgrid` or `.json` file picker |
-| **Save Pad Grid Layout** | `⌘` + `S` | Saves layout in place (prompts Save As if new) |
-| **Save Pad Grid Layout As…** | `⇧` + `⌘` + `S` | Saves layout to a new `.kkbbgrid` file |
+| **New Layout** | `⌘` + `N` | Clears all custom pad and keyboard key assignments |
+| **Open Layout…** | `⌘` + `O` | Opens `.kkbb` or `.json` file picker |
+| **Save Layout** | `⌘` + `S` | Saves layout in place (prompts Save As if new) |
+| **Save Layout As…** | `⇧` + `⌘` + `S` | Saves layout to a new `.kkbb` file |
 | **Settings** | `⌘` + `,` | Opens Settings & Profiles modal |
 | **Panic** | `⌘` + `.` | All Notes Off & Sound Reset |
 

@@ -34,6 +34,23 @@ struct TopBarView: View {
                     .labelsHidden()
                     .frame(width: 125)
                 }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Layer")
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Picker("Layer", selection: Binding(
+                        get: { appState.effectiveComputerKeyboardLayer },
+                        set: { appState.computerKeyboardLayer = $0 }
+                    )) {
+                        ForEach(ComputerKeyboardLayer.allCases) { layer in
+                            Text(layer.shortTitle).tag(layer)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 180)
+                }
             }
 
             // Output Destination
