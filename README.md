@@ -26,6 +26,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 * **One-Shot Trigger Mode**: 50 ms trigger pulse mode without sustain, ideal for samplers, drum machines, and grooveboxes.
 * **Full Transport & MIDI CC Integration**: Assign pads to MIDI System Real-Time transport (`Start`, `Stop`, `Continue`), MMC SysEx, or arbitrary CC switches (Momentary, Toggle, Trigger).
 * **Zero Audio Overhead**: Pure CoreMIDI engine. No audio synthesis, no DSP bloat, and zero latency.
+* **Zero-bloat Approach**: Written in plain Swift using only core macOS components and libraries. The release version of the app is **smaller than 4 MB**, even the debug build takes up **less than 6 MB** of disk space. The memory consumption remains well within a **60 MB** limit even under heavy use. The app will automatically clean up orphaned virtual MIDI ports when it is quit.
 
 ---
 
