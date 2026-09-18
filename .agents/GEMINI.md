@@ -78,6 +78,10 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Monospaced rolling event ticker displaying timestamp (`HH:mm:ss.SSS`), channel, event type, data description, raw hexadecimal bytes, and destination.
 * * Dual Display Modes: Collapsed 24px hardware status bar (default) or expanded 108px multi-row terminal log showing recent 60 events with newest on top.
 * * Controls: Quick toggle button in TopBarView (`waveform.path.ecg`), View menu commands (`⌥⌘M`), clear log button, and collapsible drawer chevron.
+* 3-Tier Window States:
+* * State A (Full Workstation, `⌥⌘1`): Default comprehensive view with full visual performance layouts (piano roll, drum grid, or computer keyboard).
+* * State B (Compact Controller, `⌥⌘2`): Sleek horizontal control deck (~160–190px) with wheels, sliders, octave selector, and 8 CC rotary knobs without visual keys.
+* * State C (Micro HUD, `⌥⌘3`): Minimalist 195×195 px floating HUD widget featuring a Panic button, State switcher, and a clickable Focus Box with 4 embedded activity LEDs that reclaims macOS keyboard focus.
 
 ## Tech Stack
 

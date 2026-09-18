@@ -42,6 +42,8 @@
 		10000033 /* MIDILogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000033 /* MIDILogEntry.swift */; };
 		10000034 /* MIDIMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000034 /* MIDIMonitorService.swift */; };
 		10000035 /* MIDIEventMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000035 /* MIDIEventMonitorView.swift */; };
+		10000036 /* AppWindowState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000036 /* AppWindowState.swift */; };
+		10000037 /* MicroHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000037 /* MicroHUDView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,6 +83,8 @@
 		20000033 /* MIDILogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDILogEntry.swift; sourceTree = "<group>"; };
 		20000034 /* MIDIMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIMonitorService.swift; sourceTree = "<group>"; };
 		20000035 /* MIDIEventMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIEventMonitorView.swift; sourceTree = "<group>"; };
+		20000036 /* AppWindowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindowState.swift; sourceTree = "<group>"; };
+		20000037 /* MicroHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicroHUDView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +137,7 @@
 				20000031 /* ComputerKeyboardLayer.swift */,
 				20000032 /* PadColorAccent.swift */,
 				20000033 /* MIDILogEntry.swift */,
+				20000036 /* AppWindowState.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -173,6 +178,7 @@
 				20000024 /* DrumPadGridView.swift */,
 				20000030 /* ComputerKeyboardView.swift */,
 				20000035 /* MIDIEventMonitorView.swift */,
+				20000037 /* MicroHUDView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -294,6 +300,8 @@
 				10000033 /* MIDILogEntry.swift in Sources */,
 				10000034 /* MIDIMonitorService.swift in Sources */,
 				10000035 /* MIDIEventMonitorView.swift in Sources */,
+				10000036 /* AppWindowState.swift in Sources */,
+				10000037 /* MicroHUDView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

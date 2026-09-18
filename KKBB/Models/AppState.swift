@@ -92,6 +92,15 @@ public final class AppState {
         }
     }
 
+    public var windowState: AppWindowState {
+        didSet {
+            defaults.set(windowState.rawValue, forKey: "kkbb.windowState")
+            applyWindowStateFrame(windowState)
+        }
+    }
+
+    private var savedFullSize: CGSize = CGSize(width: 820, height: 420)
+
     public var isMIDIMonitorVisible: Bool {
         didSet {
             defaults.set(isMIDIMonitorVisible, forKey: "kkbb.isMIDIMonitorVisible")
@@ -641,6 +650,13 @@ public final class AppState {
         self.isMIDIMonitorVisible = defaults.object(forKey: "kkbb.isMIDIMonitorVisible") != nil ? defaults.bool(forKey: "kkbb.isMIDIMonitorVisible") : true
         self.isMIDIMonitorExpanded = defaults.bool(forKey: "kkbb.isMIDIMonitorExpanded")
 
+        if let savedWindowState = defaults.string(forKey: "kkbb.windowState"),
+           let parsedWindowState = AppWindowState(rawValue: savedWindowState) {
+            self.windowState = parsedWindowState
+        } else {
+            self.windowState = .full
+        }
+
         // Load profiles
         var loadedProfiles: [KeyBindingProfile] = []
         if let data = defaults.data(forKey: "kkbb.userProfiles"),
@@ -840,6 +856,39 @@ public final class AppState {
         DispatchQueue.main.async {
             for window in NSApp.windows where !window.isSheet {
                 window.level = self.isAlwaysOnTop ? .floating : .normal
+            }
+        }
+    }
+
+    public func setWindowState(_ newState: AppWindowState) {
+        guard newState != windowState else { return }
+        windowState = newState
+    }
+
+    public func applyWindowStateFrame(_ state: AppWindowState) {
+        DispatchQueue.main.async {
+            for window in NSApp.windows where !window.isSheet {
+                if window.identifier?.rawValue == "main" || window.title.contains("KKBB") {
+                    var frame = window.frame
+                    let targetSize: CGSize
+                    switch state {
+                    case .full:
+                        targetSize = CGSize(
+                            width: Swift.max(720, self.savedFullSize.width),
+                            height: Swift.max(390, self.savedFullSize.height)
+                        )
+                    case .compact:
+                        let compactHeight: CGFloat = self.isMIDIMonitorVisible ? (self.isMIDIMonitorExpanded ? 275 : 195) : 170
+                        targetSize = CGSize(width: Swift.max(720, frame.width), height: compactHeight)
+                    case .micro:
+                        targetSize = CGSize(width: 195, height: 195)
+                    }
+
+                    let diffY = targetSize.height - frame.height
+                    frame.origin.y -= diffY
+                    frame.size = targetSize
+                    window.setFrame(frame, display: true, animate: true)
+                }
             }
         }
     }

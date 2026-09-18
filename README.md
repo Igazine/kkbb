@@ -126,6 +126,17 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * Menu bar command: **View > MIDI Event Monitor (`⌥⌘M`)** and **Expand Event Monitor**.
   * Clear log button to flush the circular event buffer.
 
+### 5. 3-Tier Window States
+Seamlessly adapt KKBB to your workspace footprint with three dedicated presentation modes:
+* **State A: Full Workstation (`⌥⌘1`)**: The standard, complete production interface showing all performance keys, pads, wheels, knobs, and chord strips.
+* **State B: Compact Controller (`⌥⌘2`)**: Low-profile horizontal control deck (~160–190px height) featuring the Pitch/Mod wheels, Velocity slider, Octave selector, and 8 CC rotary knobs. Keycaps and performance pads are hidden, ideal when using physical computer keyboard triggers while maximizing DAW screen space.
+* **State C: Micro HUD (`⌥⌘3`)**: An ultra-compact 195×195 px floating companion widget:
+  * **Clickable Focus Pad**: A tactile touch box that instantly activates and focuses KKBB, pulling macOS keyboard focus so keystrokes play immediately. Displays `"KEYBOARD READY"` when focused or `"CLICK TO FOCUS"` when in the background.
+  * **Embedded Activity LEDs**: The 4 real-time monitoring LEDs (`NOTE ON`, `NOTE OFF`, `CC`, `PITCH/SYS`) pulse live directly inside the Focus Box.
+  * **State Switcher**: Quick one-click icons (`⊞`, `▤`, `▫`) to return to Full or Compact mode.
+  * **Octave & Channel**: Stepper buttons (`-` / `+`) and channel badge.
+  * **Panic Button**: Immediate All Notes Off trigger.
+
 ---
 
 ## 12-Pad Chord Strip (Voicings & Scales)

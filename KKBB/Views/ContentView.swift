@@ -5,6 +5,75 @@ struct ContentView: View {
     @State private var showSettings: Bool = false
 
     var body: some View {
+        Group {
+            switch appState.windowState {
+            case .micro:
+                MicroHUDView(appState: appState)
+                    .frame(width: 195, height: 195)
+
+            case .compact:
+                compactLayout
+
+            case .full:
+                fullLayout
+            }
+        }
+        .frame(
+            minWidth: appState.windowState == .micro ? 195 : 720,
+            maxWidth: appState.windowState == .micro ? 195 : .infinity,
+            minHeight: currentMinHeight,
+            maxHeight: appState.windowState == .micro ? 195 : .infinity
+        )
+        .sheet(isPresented: $showSettings) {
+            SettingsView(appState: appState)
+        }
+        .background {
+            // Hidden button to catch Cmd+, shortcut
+            Button("") {
+                showSettings = true
+            }
+            .keyboardShortcut(",", modifiers: .command)
+            .focusable(false)
+            .opacity(0)
+        }
+        .onAppear {
+            refreshDestinations()
+            KeyboardMonitor.shared.start(with: appState)
+            appState.applyWindowLevel()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                NSApp.keyWindow?.makeFirstResponder(nil)
+            }
+        }
+        .onDisappear {
+            KeyboardMonitor.shared.stop()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .midiDestinationsChanged)) { _ in
+            refreshDestinations()
+        }
+        .onChange(of: appState.currentLayoutName) { _, newName in
+            updateWindowSubtitle(newName)
+        }
+        .onChange(of: appState.mode) { _, _ in
+            updateWindowSubtitle(appState.currentLayoutName)
+        }
+    }
+
+    private var currentMinHeight: CGFloat {
+        switch appState.windowState {
+        case .micro:
+            return 195
+        case .compact:
+            let baseCompactHeight: CGFloat = (appState.mode != .computerKeyboard ? 122 : 88) + 46
+            let monitorHeight: CGFloat = appState.isMIDIMonitorVisible ? (appState.isMIDIMonitorExpanded ? 109 : 25) : 0
+            return baseCompactHeight + monitorHeight
+        case .full:
+            let baseFullHeight: CGFloat = (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330
+            let monitorHeight: CGFloat = appState.isMIDIMonitorVisible ? (appState.isMIDIMonitorExpanded ? 109 : 25) : 0
+            return baseFullHeight + monitorHeight
+        }
+    }
+
+    private var fullLayout: some View {
         VStack(spacing: 0) {
             TopBarView(appState: appState, showSettings: $showSettings)
                 .frame(height: 46)
@@ -56,42 +125,40 @@ struct ContentView: View {
                 MIDIEventMonitorView(appState: appState)
             }
         }
-        .frame(
-            minWidth: 720,
-            minHeight: ((appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330)
-                + (appState.isMIDIMonitorVisible ? (appState.isMIDIMonitorExpanded ? 109 : 25) : 0)
-        )
-        .sheet(isPresented: $showSettings) {
-            SettingsView(appState: appState)
-        }
-        .background {
-            // Hidden button to catch Cmd+, shortcut
-            Button("") {
-                showSettings = true
+    }
+
+    private var compactLayout: some View {
+        VStack(spacing: 0) {
+            TopBarView(appState: appState, showSettings: $showSettings)
+                .frame(height: 46)
+
+            darkHDivider
+
+            HStack(spacing: 0) {
+                PitchModWheelsView(appState: appState)
+                    .frame(width: 96)
+
+                darkVDivider
+
+                VStack(spacing: 0) {
+                    if appState.mode != .computerKeyboard {
+                        OctaveBarView(appState: appState)
+                    }
+
+                    KnobsStripView(appState: appState)
+                }
             }
-            .keyboardShortcut(",", modifiers: .command)
             .focusable(false)
-            .opacity(0)
-        }
-        .onAppear {
-            refreshDestinations()
-            KeyboardMonitor.shared.start(with: appState)
-            appState.applyWindowLevel()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                NSApp.keyWindow?.makeFirstResponder(nil)
+            .simultaneousGesture(
+                TapGesture().onEnded { _ in
+                    NSApp.keyWindow?.makeFirstResponder(nil)
+                }
+            )
+
+            if appState.isMIDIMonitorVisible {
+                darkHDivider
+                MIDIEventMonitorView(appState: appState)
             }
-        }
-        .onDisappear {
-            KeyboardMonitor.shared.stop()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .midiDestinationsChanged)) { _ in
-            refreshDestinations()
-        }
-        .onChange(of: appState.currentLayoutName) { _, newName in
-            updateWindowSubtitle(newName)
-        }
-        .onChange(of: appState.mode) { _, _ in
-            updateWindowSubtitle(appState.currentLayoutName)
         }
     }
 

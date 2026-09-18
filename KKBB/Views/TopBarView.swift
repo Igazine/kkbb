@@ -117,6 +117,29 @@ struct TopBarView: View {
             .controlSize(.small)
             .help(appState.isMIDIMonitorVisible ? "Hide MIDI Event Monitor (⌥⌘M)" : "Show MIDI Event Monitor (⌥⌘M)")
 
+            // Window State Switcher (Full / Compact / Micro)
+            HStack(spacing: 2) {
+                ForEach(AppWindowState.allCases) { state in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            appState.setWindowState(state)
+                        }
+                    } label: {
+                        Image(systemName: state.iconName)
+                            .font(.system(size: 10, weight: .semibold))
+                            .frame(width: 17, height: 16)
+                            .foregroundColor(appState.windowState == state ? .white : .secondary)
+                            .background(appState.windowState == state ? Color.accentColor : Color.clear)
+                            .cornerRadius(3)
+                    }
+                    .buttonStyle(.plain)
+                    .help("\(state.displayName) (\(state.shortcutHint))")
+                }
+            }
+            .padding(2)
+            .background(Color.black.opacity(0.25))
+            .cornerRadius(5)
+
             // Settings Button
             Button {
                 showSettings = true

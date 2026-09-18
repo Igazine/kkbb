@@ -44,6 +44,23 @@ struct KKBBApp: App {
             }
 
             CommandMenu("View") {
+                Button("Full Workstation") {
+                    appState.setWindowState(.full)
+                }
+                .keyboardShortcut("1", modifiers: [.command, .option])
+
+                Button("Compact Controller") {
+                    appState.setWindowState(.compact)
+                }
+                .keyboardShortcut("2", modifiers: [.command, .option])
+
+                Button("Micro HUD") {
+                    appState.setWindowState(.micro)
+                }
+                .keyboardShortcut("3", modifiers: [.command, .option])
+
+                Divider()
+
                 Toggle("MIDI Event Monitor", isOn: Binding(
                     get: { appState.isMIDIMonitorVisible },
                     set: { appState.isMIDIMonitorVisible = $0 }
