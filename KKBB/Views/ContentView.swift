@@ -20,11 +20,11 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                     if appState.mode != .computerKeyboard {
                         OctaveBarView(appState: appState)
-
-                        KnobsStripView(appState: appState)
-
-                        darkHDivider
                     }
+
+                    KnobsStripView(appState: appState)
+
+                    darkHDivider
 
                     if appState.mode == .drumGrid {
                         DrumPadGridView(appState: appState)
