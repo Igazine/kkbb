@@ -30,26 +30,7 @@ struct ComputerKeyboardView: View {
     private let keyCornerRadius: CGFloat = 4.0
 
     var body: some View {
-        VStack(spacing: 2) {
-            // Subtle helper strip at the top
-            HStack(spacing: 12) {
-                Text("Right-click key to configure note, chord, command, or CC · Click to trigger")
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button("Clear All Keys") {
-                    showClearConfirm = true
-                }
-                .buttonStyle(.borderless)
-                .font(.system(size: 10.5))
-                .foregroundStyle(.red.opacity(0.85))
-            }
-            .frame(height: 16)
-            .padding(.horizontal, 14)
-            .padding(.top, 2)
-
+        VStack(spacing: 4) {
             // Scalable Keyboard Surface
             GeometryReader { geometry in
                 let isExtended = appState.computerKeyboardType == .extended101
@@ -90,8 +71,33 @@ struct ComputerKeyboardView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .padding(.horizontal, horizontalMargin)
-                .padding(.bottom, 4)
+                .padding(.top, 6)
+                .padding(.bottom, 2)
             }
+
+            // Centered helper strip below the keyboard
+            HStack(spacing: 12) {
+                Spacer()
+
+                Text("Right-click key to configure note, chord, command, or CC · Click to trigger")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary)
+
+                Text("·")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary.opacity(0.5))
+
+                Button("Clear All Keys") {
+                    showClearConfirm = true
+                }
+                .buttonStyle(.borderless)
+                .font(.system(size: 10.5))
+                .foregroundStyle(.red.opacity(0.85))
+
+                Spacer()
+            }
+            .frame(height: 16)
+            .padding(.bottom, 6)
         }
         .confirmationDialog(
             "Clear Computer Keyboard?",
