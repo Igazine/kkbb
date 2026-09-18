@@ -838,13 +838,13 @@ struct ComputerKeyboardView: View {
             ]
         case 1: // 3 * 1.0 = 3.00
             return [
-                ComputerKeyInfo(id: "fwd_del", keyCode: 117, label: "⌦", secondaryLabel: "del", widthUnits: 1.0, isConfigurable: true),
+                ComputerKeyInfo(id: "insert", keyCode: 114, label: "ins", secondaryLabel: "help", widthUnits: 1.0, isConfigurable: true),
                 ComputerKeyInfo(id: "home", keyCode: 115, label: "home", secondaryLabel: "↖", widthUnits: 1.0, isConfigurable: true),
                 ComputerKeyInfo(id: "pageup", keyCode: 116, label: "pg up", secondaryLabel: "⇞", widthUnits: 1.0, isConfigurable: true)
             ]
         case 2: // 3 * 1.0 = 3.00
             return [
-                ComputerKeyInfo(id: "nav_empty", keyCode: nil, label: "", secondaryLabel: nil, widthUnits: 1.0, isConfigurable: false, isSpacer: true),
+                ComputerKeyInfo(id: "fwd_del", keyCode: 117, label: "del", secondaryLabel: "⌦", widthUnits: 1.0, isConfigurable: true),
                 ComputerKeyInfo(id: "end", keyCode: 119, label: "end", secondaryLabel: "↘", widthUnits: 1.0, isConfigurable: true),
                 ComputerKeyInfo(id: "pagedown", keyCode: 121, label: "pg dn", secondaryLabel: "⇟", widthUnits: 1.0, isConfigurable: true)
             ]
