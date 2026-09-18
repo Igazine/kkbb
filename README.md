@@ -260,6 +260,8 @@ KKBB features an intermediate pipeline separating note triggers and controllers 
 ![1-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.20.46.png)
 ![2-Octave Screen](screenshots/Screenshot%202026-09-17%20at%2019.25.39.png)
 ![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-17%20at%2019.26.37.png)
+![75-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.27.56.png)
+![101-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%206.28.11.png)
 
 ---
 
