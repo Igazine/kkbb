@@ -92,6 +92,18 @@ public final class AppState {
         }
     }
 
+    public var isMIDIMonitorVisible: Bool {
+        didSet {
+            defaults.set(isMIDIMonitorVisible, forKey: "kkbb.isMIDIMonitorVisible")
+        }
+    }
+
+    public var isMIDIMonitorExpanded: Bool {
+        didSet {
+            defaults.set(isMIDIMonitorExpanded, forKey: "kkbb.isMIDIMonitorExpanded")
+        }
+    }
+
     public var activeChordPadIndex: Int? = nil
     public var activeDrumPadKeys: Set<String> = [] // Elements are "\(bank)_\(padIndex)"
     public var activeDrumPadCCToggles: Set<String> = [] // Elements are "\(bank)_\(padIndex)" for toggled ON CC pads
@@ -626,6 +638,8 @@ public final class AppState {
 
         self.isOneShotMode = defaults.bool(forKey: "kkbb.isOneShotMode")
         self.isAlwaysOnTop = defaults.bool(forKey: "kkbb.isAlwaysOnTop")
+        self.isMIDIMonitorVisible = defaults.object(forKey: "kkbb.isMIDIMonitorVisible") != nil ? defaults.bool(forKey: "kkbb.isMIDIMonitorVisible") : true
+        self.isMIDIMonitorExpanded = defaults.bool(forKey: "kkbb.isMIDIMonitorExpanded")
 
         // Load profiles
         var loadedProfiles: [KeyBindingProfile] = []

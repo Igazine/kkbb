@@ -39,6 +39,9 @@
 		10000030 /* ComputerKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000030 /* ComputerKeyboardView.swift */; };
 		10000031 /* ComputerKeyboardLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000031 /* ComputerKeyboardLayer.swift */; };
 		10000032 /* PadColorAccent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000032 /* PadColorAccent.swift */; };
+		10000033 /* MIDILogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000033 /* MIDILogEntry.swift */; };
+		10000034 /* MIDIMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000034 /* MIDIMonitorService.swift */; };
+		10000035 /* MIDIEventMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000035 /* MIDIEventMonitorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -75,6 +78,9 @@
 		20000030 /* ComputerKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardView.swift; sourceTree = "<group>"; };
 		20000031 /* ComputerKeyboardLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardLayer.swift; sourceTree = "<group>"; };
 		20000032 /* PadColorAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadColorAccent.swift; sourceTree = "<group>"; };
+		20000033 /* MIDILogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDILogEntry.swift; sourceTree = "<group>"; };
+		20000034 /* MIDIMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIMonitorService.swift; sourceTree = "<group>"; };
+		20000035 /* MIDIEventMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIEventMonitorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +132,7 @@
 				20000029 /* ComputerKeyboardType.swift */,
 				20000031 /* ComputerKeyboardLayer.swift */,
 				20000032 /* PadColorAccent.swift */,
+				20000033 /* MIDILogEntry.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -146,6 +153,7 @@
 				20000005 /* MIDIManager.swift */,
 				20000006 /* KeyboardMonitor.swift */,
 				20000028 /* LayoutDocumentManager.swift */,
+				20000034 /* MIDIMonitorService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -164,6 +172,7 @@
 				20000022 /* ChordPadsStripView.swift */,
 				20000024 /* DrumPadGridView.swift */,
 				20000030 /* ComputerKeyboardView.swift */,
+				20000035 /* MIDIEventMonitorView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -282,6 +291,9 @@
 				10000030 /* ComputerKeyboardView.swift in Sources */,
 				10000031 /* ComputerKeyboardLayer.swift in Sources */,
 				10000032 /* PadColorAccent.swift in Sources */,
+				10000033 /* MIDILogEntry.swift in Sources */,
+				10000034 /* MIDIMonitorService.swift in Sources */,
+				10000035 /* MIDIEventMonitorView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

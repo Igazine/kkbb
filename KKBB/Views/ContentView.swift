@@ -50,8 +50,17 @@ struct ContentView: View {
                     NSApp.keyWindow?.makeFirstResponder(nil)
                 }
             )
+
+            if appState.isMIDIMonitorVisible {
+                darkHDivider
+                MIDIEventMonitorView(appState: appState)
+            }
         }
-        .frame(minWidth: 720, minHeight: (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330)
+        .frame(
+            minWidth: 720,
+            minHeight: ((appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330)
+                + (appState.isMIDIMonitorVisible ? (appState.isMIDIMonitorExpanded ? 109 : 25) : 0)
+        )
         .sheet(isPresented: $showSettings) {
             SettingsView(appState: appState)
         }

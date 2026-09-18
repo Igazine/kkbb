@@ -72,6 +72,12 @@ macOS Native Virtual Midi Keyboard that uses the computer keyboard to send MIDI 
 * * Instant DragGesture Mouse Triggering: Mouse clicks on keycaps trigger Note-On/CC immediately on press, sustain while held, and release on mouse up.
 * * Visual Feedback: Active key glows with solid blue fill when assigned; unassigned configurable keys display an accent blue border with blue glow and no MIDI output.
 * * Profile Persistence: Computer keyboard key configurations across all layers are automatically persisted in the active `KeyBindingProfile` JSON structure under `computerKeyboardKeys`.
+* Live MIDI Event Monitor & Status Strip:
+* * Hardware-inspired status strip docked at the bottom of the window below the performance area.
+* * 4 color-coded activity LEDs (Note-On in Green, Note-Off in Dim White, CC in Amber, Pitch/Sys/Transport in Cyan) with momentary physical glow pulses.
+* * Monospaced rolling event ticker displaying timestamp (`HH:mm:ss.SSS`), channel, event type, data description, raw hexadecimal bytes, and destination.
+* * Dual Display Modes: Collapsed 24px hardware status bar (default) or expanded 108px multi-row terminal log showing recent 60 events with newest on top.
+* * Controls: Quick toggle button in TopBarView (`waveform.path.ecg`), View menu commands (`⌥⌘M`), clear log button, and collapsible drawer chevron.
 
 ## Tech Stack
 

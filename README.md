@@ -104,6 +104,27 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
   * Unassigned configurable keys glow with an accent blue border stroke and no MIDI output, giving instant visual feedback for international keyboard layouts.
 * **Right-Click Assignment**: Right-click any configurable key to assign Root Note & Octave, Voicing (14 chords, 20 Bitwig scales), MIDI Real-Time/MMC commands, MIDI CC triggers, or **MIDI Channel & Output Destination Overrides** for the active layer, with a "Copy from Base Layer" option. Displays subtle channel badges (`C10`) directly on keycaps.
 
+### 4. Live MIDI Event Monitor & Status Strip
+* **Hardware Activity LEDs**: 4 color-coded real-time indicators with momentary glow pulses for physical monitoring:
+  * 🟢 **NOTE ON**: Emerald Green (`#34D399`)
+  * ⚪ **NOTE OFF**: Slate White (`#E2E8F0`)
+  * 🟠 **CC**: Amber (`#F59E0B`)
+  * 🔵 **PITCH / SYS**: Sky Cyan (`#38BDF8`) for Pitch Bend, System Real-Time, MMC, and Panic
+* **Monospaced Event Ticker**: Displays outgoing MIDI events in a clean technical format:
+  * Timestamp (`HH:mm:ss.SSS`)
+  * Channel (`CH 01`–`CH 16` or `SYS`)
+  * Event Type (`NOTE ON`, `NOTE OFF`, `CC`, `PITCH`, `REALTIME`, `MMC`, `PANIC`) with syntax-highlighted pill badges
+  * Note/Param Details (e.g. `C3 (48) Vel 100`, `Modulation (1) Val 64`, `Bend +4096 (12288)`)
+  * Raw Hexadecimal Bytes (e.g. `90 30 64`, `B0 01 40`, `E0 00 60`, `FA`)
+  * Destination Endpoint (e.g. `KKBB Virtual Output`, external synth port)
+* **Dual Display Modes**:
+  * **Collapsed Status Bar (24px)**: Ultra-sleek bottom hardware strip with live flashing LEDs and single-line rolling ticker.
+  * **Expanded Console Log (108px)**: Monospaced terminal table displaying the rolling history of the last 60 events with newest entries on top and alternating row contrast.
+* **Controls & Key Shortcuts**:
+  * Quick-toggle button in the top bar (`waveform.path.ecg`).
+  * Menu bar command: **View > MIDI Event Monitor (`⌥⌘M`)** and **Expand Event Monitor**.
+  * Clear log button to flush the circular event buffer.
+
 ---
 
 ## 12-Pad Chord Strip (Voicings & Scales)

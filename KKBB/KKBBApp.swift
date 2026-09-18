@@ -43,6 +43,20 @@ struct KKBBApp: App {
                 ))
             }
 
+            CommandMenu("View") {
+                Toggle("MIDI Event Monitor", isOn: Binding(
+                    get: { appState.isMIDIMonitorVisible },
+                    set: { appState.isMIDIMonitorVisible = $0 }
+                ))
+                .keyboardShortcut("m", modifiers: [.command, .option])
+
+                Toggle("Expand Event Monitor", isOn: Binding(
+                    get: { appState.isMIDIMonitorExpanded },
+                    set: { appState.isMIDIMonitorExpanded = $0 }
+                ))
+                .disabled(!appState.isMIDIMonitorVisible)
+            }
+
             CommandMenu("Keyboard") {
                 Button("Octave Up") {
                     if appState.octave < 6 {

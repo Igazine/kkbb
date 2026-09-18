@@ -104,6 +104,19 @@ struct TopBarView: View {
             .controlSize(.small)
             .help("All Notes Off")
 
+            // MIDI Event Monitor Toggle
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    appState.isMIDIMonitorVisible.toggle()
+                }
+            } label: {
+                Image(systemName: "waveform.path.ecg")
+                    .foregroundColor(appState.isMIDIMonitorVisible ? .accentColor : .secondary)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(appState.isMIDIMonitorVisible ? "Hide MIDI Event Monitor (⌥⌘M)" : "Show MIDI Event Monitor (⌥⌘M)")
+
             // Settings Button
             Button {
                 showSettings = true

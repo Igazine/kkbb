@@ -86,19 +86,72 @@ public final class MIDIManager {
         NotificationCenter.default.post(name: .midiDestinationsChanged, object: nil)
     }
 
+    public func destinationName(for uid: Int32?) -> String {
+        guard let uid else { return "KKBB Virtual Output" }
+        let dests = getDestinations()
+        if let match = dests.first(where: { $0.id == uid }) {
+            return match.name
+        }
+        return "Endpoint (\(uid))"
+    }
+
+    public static func noteName(for note: UInt8) -> String {
+        let semitone = Int(note) % 12
+        let octave = (Int(note) / 12) - 1
+        let name = DrumPadConfig.noteNames[semitone]
+        return "\(name)\(octave)"
+    }
+
+    public static func ccName(for controller: UInt8) -> String {
+        switch controller {
+        case 1: return "Modulation"
+        case 2: return "Breath"
+        case 7: return "Volume"
+        case 10: return "Pan"
+        case 11: return "Expression"
+        case 64: return "Sustain"
+        case 71: return "Resonance"
+        case 74: return "Cutoff"
+        case 91: return "Reverb"
+        case 120: return "All Sound Off"
+        case 123: return "All Notes Off"
+        default: return "CC \(controller)"
+        }
+    }
+
     public func sendNoteOn(note: UInt8, velocity: UInt8, channel: Int, destinationUID: Int32?) {
         sendMIDIMessage(status: 0x90, note: note, velocity: velocity, channel: channel, destinationUID: destinationUID)
+        let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
+        let statusByte = 0x90 | ch
+        let hex = String(format: "%02X %02X %02X", statusByte, note, velocity)
+        let dest = destinationName(for: destinationUID)
+        let name = Self.noteName(for: note)
+        if velocity > 0 {
+            MIDIMonitorService.shared.log(type: .noteOn, channel: channel, detail: "\(name) (\(note))  Vel \(velocity)", hexBytes: hex, destination: dest)
+        } else {
+            MIDIMonitorService.shared.log(type: .noteOff, channel: channel, detail: "\(name) (\(note))  Vel 0", hexBytes: hex, destination: dest)
+        }
     }
 
     public func sendNoteOff(note: UInt8, velocity: UInt8 = 0, channel: Int, destinationUID: Int32?) {
         sendMIDIMessage(status: 0x80, note: note, velocity: velocity, channel: channel, destinationUID: destinationUID)
+        let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
+        let statusByte = 0x80 | ch
+        let hex = String(format: "%02X %02X %02X", statusByte, note, velocity)
+        let dest = destinationName(for: destinationUID)
+        let name = Self.noteName(for: note)
+        MIDIMonitorService.shared.log(type: .noteOff, channel: channel, detail: "\(name) (\(note))  Vel \(velocity)", hexBytes: hex, destination: dest)
     }
 
     public func allNotesOff(channel: Int, destinationUID: Int32?) {
+        let dest = destinationName(for: destinationUID)
+        let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
+        let hex = String(format: "%02X 7B 00 · %02X 78 00", 0xB0 | ch, 0xB0 | ch)
+        MIDIMonitorService.shared.log(type: .allNotesOff, channel: channel, detail: "All Notes & Sound Off", hexBytes: hex, destination: dest)
         // Control Change 123 (All Notes Off)
-        sendCC(controller: 123, value: 0, channel: channel, destinationUID: destinationUID)
+        sendCC(controller: 123, value: 0, channel: channel, destinationUID: destinationUID, skipLog: true)
         // Control Change 120 (All Sound Off)
-        sendCC(controller: 120, value: 0, channel: channel, destinationUID: destinationUID)
+        sendCC(controller: 120, value: 0, channel: channel, destinationUID: destinationUID, skipLog: true)
     }
 
     public func sendCommand(_ command: MIDICommandType, channel: Int, destinationUID: Int32?) {
@@ -107,15 +160,25 @@ public final class MIDIManager {
             allNotesOff(channel: channel, destinationUID: destinationUID)
         default:
             sendRawBytes(command.rawBytes, destinationUID: destinationUID)
+            let hex = command.rawBytes.map { String(format: "%02X", $0) }.joined(separator: " ")
+            let dest = destinationName(for: destinationUID)
+            let logType: MIDILogEventType = (command.category == .realTime) ? .realTime : .mmc
+            MIDIMonitorService.shared.log(type: logType, channel: nil, detail: command.displayName, hexBytes: hex, destination: dest)
         }
     }
 
-    public func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?) {
+    public func sendCC(controller: UInt8, value: UInt8, channel: Int, destinationUID: Int32?, skipLog: Bool = false) {
         let ch = UInt8(Swift.max(0, Swift.min(15, channel - 1)))
         let statusByte = 0xB0 | ch
         let clampedController = Swift.min(controller, 127)
         let clampedValue = Swift.min(value, 127)
         sendRawBytes([statusByte, clampedController, clampedValue], destinationUID: destinationUID)
+        if !skipLog {
+            let hex = String(format: "%02X %02X %02X", statusByte, clampedController, clampedValue)
+            let dest = destinationName(for: destinationUID)
+            let name = Self.ccName(for: clampedController)
+            MIDIMonitorService.shared.log(type: .controlChange, channel: channel, detail: "\(name) (\(clampedController)) Val \(clampedValue)", hexBytes: hex, destination: dest)
+        }
     }
 
     public func sendModulation(value: UInt8, channel: Int, destinationUID: Int32?) {
@@ -129,6 +192,11 @@ public final class MIDIManager {
         let lsb = UInt8(clamped & 0x7F)
         let msb = UInt8((clamped >> 7) & 0x7F)
         sendRawBytes([statusByte, lsb, msb], destinationUID: destinationUID)
+        let hex = String(format: "%02X %02X %02X", statusByte, lsb, msb)
+        let dest = destinationName(for: destinationUID)
+        let offset = Int(clamped) - 8192
+        let sign = offset > 0 ? "+" : ""
+        MIDIMonitorService.shared.log(type: .pitchBend, channel: channel, detail: "Bend \(sign)\(offset) (\(clamped))", hexBytes: hex, destination: dest)
     }
 
     private func sendMIDIMessage(status: UInt8, note: UInt8, velocity: UInt8, channel: Int, destinationUID: Int32?) {
