@@ -81,11 +81,35 @@ public struct DrumPadGridView: View {
                 )
 
             VStack(spacing: 1) {
-                // Top Header: Pad Number & Hot-Key
-                HStack(alignment: .center) {
+                // Top Header: Pad Number & Hot-Key & Overrides
+                HStack(alignment: .center, spacing: 3) {
                     Text("\(padIndex + 1)")
                         .font(.system(size: 8.5, weight: .bold, design: .monospaced))
                         .foregroundStyle(isActive ? Color.white.opacity(0.9) : Color.secondary.opacity(0.6))
+
+                    if let ch = config?.channelOverride {
+                        Text("CH\(ch)")
+                            .font(.system(size: 7.5, weight: .black, design: .monospaced))
+                            .padding(.horizontal, 3)
+                            .padding(.vertical, 0.5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 2.5)
+                                    .fill(isActive ? Color.white.opacity(0.3) : Color.purple.opacity(0.25))
+                            )
+                            .foregroundStyle(isActive ? Color.white : Color.purple)
+                    }
+
+                    if let dest = config?.destinationOverrideUID {
+                        Text(dest == "virtual" ? "VIRT" : "EXT")
+                            .font(.system(size: 7.0, weight: .black, design: .monospaced))
+                            .padding(.horizontal, 2.5)
+                            .padding(.vertical, 0.5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 2.5)
+                                    .fill(isActive ? Color.white.opacity(0.3) : Color.teal.opacity(0.25))
+                            )
+                            .foregroundStyle(isActive ? Color.white : Color.teal)
+                    }
 
                     Spacer()
 
@@ -445,6 +469,106 @@ public struct DrumPadGridView: View {
                     customCCLabel = ""
                 }
                 showCCConfigSheet = true
+            }
+        }
+
+        Divider()
+
+        // MIDI Channel Override Submenu
+        Menu("MIDI Channel") {
+            let activeCh = config?.channelOverride
+
+            Button {
+                var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                current.channelOverride = nil
+                appState.updateDrumPadConfig(current)
+            } label: {
+                if activeCh == nil {
+                    Label("Global (Follow Top Bar)", systemImage: "checkmark")
+                } else {
+                    Text("Global (Follow Top Bar)")
+                }
+            }
+
+            Divider()
+
+            ForEach(1...16, id: \.self) { ch in
+                Button {
+                    var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                    current.channelOverride = ch
+                    appState.updateDrumPadConfig(current)
+                } label: {
+                    if activeCh == ch {
+                        Label("Channel \(ch)", systemImage: "checkmark")
+                    } else {
+                        Text("Channel \(ch)")
+                    }
+                }
+            }
+        }
+
+        // MIDI Output Override Submenu
+        Menu("MIDI Output") {
+            let activeDest = config?.destinationOverrideUID
+
+            Button {
+                var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                current.destinationOverrideUID = nil
+                current.destinationOverrideName = nil
+                appState.updateDrumPadConfig(current)
+            } label: {
+                if activeDest == nil {
+                    Label("Global (Follow Top Bar)", systemImage: "checkmark")
+                } else {
+                    Text("Global (Follow Top Bar)")
+                }
+            }
+
+            Divider()
+
+            Button {
+                var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                current.destinationOverrideUID = "virtual"
+                current.destinationOverrideName = "KKBB Virtual Only"
+                appState.updateDrumPadConfig(current)
+            } label: {
+                if activeDest == "virtual" {
+                    Label("KKBB Virtual Only", systemImage: "checkmark")
+                } else {
+                    Text("KKBB Virtual Only")
+                }
+            }
+
+            if !appState.availableDestinations.isEmpty {
+                Divider()
+
+                ForEach(appState.availableDestinations) { dest in
+                    let isSel = activeDest == "\(dest.id)"
+                    Button {
+                        var current = config ?? DrumPadConfig(bank: bank, padIndex: padIndex)
+                        current.destinationOverrideUID = "\(dest.id)"
+                        current.destinationOverrideName = dest.name
+                        appState.updateDrumPadConfig(current)
+                    } label: {
+                        if isSel {
+                            Label(dest.name, systemImage: "checkmark")
+                        } else {
+                            Text(dest.name)
+                        }
+                    }
+                }
+            }
+
+            if let savedUID = activeDest,
+               savedUID != "virtual",
+               !appState.availableDestinations.contains(where: { "\($0.id)" == savedUID }) {
+                Divider()
+                let offlineName = config?.destinationOverrideName ?? "Saved Device"
+                Button {
+                    // Keep existing selection
+                } label: {
+                    Label("\(offlineName) (Offline)", systemImage: "checkmark")
+                }
             }
         }
     }

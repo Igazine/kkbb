@@ -297,17 +297,31 @@ struct ComputerKeyboardView: View {
                 // Assignment Badges
                 if let cfg = config, cfg.isAssigned {
                     if let cmd = cfg.midiCommand {
-                        Text(cmd.padBadge)
-                            .font(.system(size: Swift.max(5.5, Swift.min(9.0, unitWidth * 0.20)), weight: .bold))
-                            .foregroundStyle(isActive ? .white : Color.accentColor)
-                            .lineLimit(1)
+                        HStack(spacing: 1.5) {
+                            Text(cmd.padBadge)
+                                .font(.system(size: Swift.max(5.5, Swift.min(9.0, unitWidth * 0.20)), weight: .bold))
+                                .foregroundStyle(isActive ? .white : Color.accentColor)
+                            if let ch = cfg.channelOverride {
+                                Text("C\(ch)")
+                                    .font(.system(size: Swift.max(5.0, Swift.min(7.5, unitWidth * 0.17)), weight: .black, design: .monospaced))
+                                    .foregroundStyle(isActive ? .white : Color.purple)
+                            }
+                        }
+                        .lineLimit(1)
                     } else if let cc = cfg.ccConfig {
-                        Text(cc.displayBadge)
-                            .font(.system(size: Swift.max(5.5, Swift.min(9.0, unitWidth * 0.20)), weight: .bold))
-                            .foregroundStyle(isActive ? .white : Color.orange)
-                            .lineLimit(1)
+                        HStack(spacing: 1.5) {
+                            Text(cc.displayBadge)
+                                .font(.system(size: Swift.max(5.5, Swift.min(9.0, unitWidth * 0.20)), weight: .bold))
+                                .foregroundStyle(isActive ? .white : Color.orange)
+                            if let ch = cfg.channelOverride {
+                                Text("C\(ch)")
+                                    .font(.system(size: Swift.max(5.0, Swift.min(7.5, unitWidth * 0.17)), weight: .black, design: .monospaced))
+                                    .foregroundStyle(isActive ? .white : Color.purple)
+                            }
+                        }
+                        .lineLimit(1)
                     } else if let note = cfg.fullNoteLabel {
-                        HStack(spacing: 1) {
+                        HStack(spacing: 1.5) {
                             Text(note)
                                 .font(.system(size: Swift.max(6.0, Swift.min(9.5, unitWidth * 0.22)), weight: .bold, design: .monospaced))
                                 .foregroundStyle(isActive ? .white : Color.cyan)
@@ -315,6 +329,11 @@ struct ComputerKeyboardView: View {
                                 Text(chord.shortName)
                                     .font(.system(size: Swift.max(5.0, Swift.min(8.0, unitWidth * 0.18)), weight: .medium))
                                     .foregroundStyle(isActive ? .white.opacity(0.9) : .secondary)
+                            }
+                            if let ch = cfg.channelOverride {
+                                Text("C\(ch)")
+                                    .font(.system(size: Swift.max(5.0, Swift.min(7.5, unitWidth * 0.17)), weight: .black, design: .monospaced))
+                                    .foregroundStyle(isActive ? .white : Color.purple)
                             }
                         }
                         .lineLimit(1)
@@ -427,6 +446,11 @@ struct ComputerKeyboardView: View {
                         Text(cc.displayBadge)
                             .font(.system(size: Swift.max(5.0, Swift.min(7.5, unitWidth * 0.16)), weight: .bold))
                             .foregroundStyle(isActive ? .white : Color.orange)
+                    }
+                    if let ch = cfg.channelOverride {
+                        Text("C\(ch)")
+                            .font(.system(size: Swift.max(4.5, Swift.min(7.0, unitWidth * 0.15)), weight: .black, design: .monospaced))
+                            .foregroundStyle(isActive ? .white : Color.purple)
                     }
                 }
             }
@@ -555,6 +579,23 @@ struct ComputerKeyboardView: View {
         cfg.midiCommand = nil
         cfg.semitone = nil
         cfg.octave = nil
+        appState.updateComputerKeyConfig(cfg, layer: layer)
+    }
+
+    private func assignChannel(channel: Int?, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
+        var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
+        cfg.keyCode = keyCode
+        cfg.keyTrigger = label
+        cfg.channelOverride = channel
+        appState.updateComputerKeyConfig(cfg, layer: layer)
+    }
+
+    private func assignDestination(destUID: String?, destName: String?, keyCode: UInt16, label: String, current: DrumPadConfig?, layer: ComputerKeyboardLayer) {
+        var cfg = current ?? DrumPadConfig(bank: 0, padIndex: Int(keyCode), keyCode: keyCode, keyTrigger: label)
+        cfg.keyCode = keyCode
+        cfg.keyTrigger = label
+        cfg.destinationOverrideUID = destUID
+        cfg.destinationOverrideName = destName
         appState.updateComputerKeyConfig(cfg, layer: layer)
     }
 
@@ -689,7 +730,61 @@ struct ComputerKeyboardView: View {
 
         Divider()
 
-        // 5. Clear
+        // 5. MIDI Channel Override Submenu
+        Menu("MIDI Channel") {
+            let activeCh = currentConfig?.channelOverride
+
+            MenuCheckButton(title: "Global (Follow Top Bar)", isSelected: activeCh == nil) {
+                assignChannel(channel: nil, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
+            }
+
+            Divider()
+
+            ForEach(1...16, id: \.self) { ch in
+                MenuCheckButton(title: "Channel \(ch)", isSelected: activeCh == ch) {
+                    assignChannel(channel: ch, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
+                }
+            }
+        }
+
+        // 6. MIDI Output Override Submenu
+        Menu("MIDI Output") {
+            let activeDest = currentConfig?.destinationOverrideUID
+
+            MenuCheckButton(title: "Global (Follow Top Bar)", isSelected: activeDest == nil) {
+                assignDestination(destUID: nil, destName: nil, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
+            }
+
+            Divider()
+
+            MenuCheckButton(title: "KKBB Virtual Only", isSelected: activeDest == "virtual") {
+                assignDestination(destUID: "virtual", destName: "KKBB Virtual Only", keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
+            }
+
+            if !appState.availableDestinations.isEmpty {
+                Divider()
+
+                ForEach(appState.availableDestinations) { dest in
+                    MenuCheckButton(title: dest.name, isSelected: activeDest == "\(dest.id)") {
+                        assignDestination(destUID: "\(dest.id)", destName: dest.name, keyCode: keyCode, label: label, current: currentConfig, layer: currentLayer)
+                    }
+                }
+            }
+
+            if let savedUID = activeDest,
+               savedUID != "virtual",
+               !appState.availableDestinations.contains(where: { "\($0.id)" == savedUID }) {
+                Divider()
+                let offlineName = currentConfig?.destinationOverrideName ?? "Saved Device"
+                MenuCheckButton(title: "\(offlineName) (Offline)", isSelected: true) {
+                    // Keep offline selection
+                }
+            }
+        }
+
+        Divider()
+
+        // 7. Clear
         Button("Clear Assignment (\(currentLayer.shortTitle))", role: .destructive) {
             appState.clearComputerKey(keyCode: keyCode, layer: currentLayer)
         }

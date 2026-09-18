@@ -13,6 +13,9 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
     public var chordTypeID: String? // nil or "none" or ChordType.id
     public var midiCommand: MIDICommandType? // Optional transport or panic command
     public var ccConfig: DrumPadCCConfig? // Optional MIDI Control Change (CC) button/trigger
+    public var channelOverride: Int? // 1...16, nil = follow global
+    public var destinationOverrideUID: String? // nil = follow global, "virtual" = Virtual Only, "\(id)" = specific device
+    public var destinationOverrideName: String? // display name for context menu / offline device
 
     public static let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
@@ -27,7 +30,10 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
         octave: Int? = nil,
         chordTypeID: String? = nil,
         midiCommand: MIDICommandType? = nil,
-        ccConfig: DrumPadCCConfig? = nil
+        ccConfig: DrumPadCCConfig? = nil,
+        channelOverride: Int? = nil,
+        destinationOverrideUID: String? = nil,
+        destinationOverrideName: String? = nil
     ) {
         self.id = id
         self.bank = bank
@@ -40,6 +46,9 @@ public struct DrumPadConfig: Identifiable, Codable, Hashable {
         self.chordTypeID = chordTypeID
         self.midiCommand = midiCommand
         self.ccConfig = ccConfig
+        self.channelOverride = channelOverride
+        self.destinationOverrideUID = destinationOverrideUID
+        self.destinationOverrideName = destinationOverrideName
     }
 
     public var isAssigned: Bool {

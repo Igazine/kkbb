@@ -123,8 +123,41 @@ public final class AppState {
 
     public var activeComputerKeys: Set<UInt16> = []
     public var activeComputerCCToggles: Set<UInt16> = []
-    private var activeComputerKeyNotes: [UInt16: [UInt8]] = [:]
-    private var activeComputerKeyCC: [UInt16: DrumPadCCConfig] = [:]
+
+    private struct ActiveKeyNoteTrigger {
+        var notes: [UInt8]
+        var channel: Int
+        var destinationUID: Int32?
+    }
+
+    private struct ActiveCCTrigger {
+        var cc: DrumPadCCConfig
+        var channel: Int
+        var destinationUID: Int32?
+    }
+
+    private var activeComputerKeyNotes: [UInt16: ActiveKeyNoteTrigger] = [:]
+    private var activeComputerKeyCC: [UInt16: ActiveCCTrigger] = [:]
+
+    private var activeDrumPadNotes: [String: ActiveKeyNoteTrigger] = [:]
+    private var activeDrumPadCC: [String: ActiveCCTrigger] = [:]
+
+    public func effectiveChannel(for config: DrumPadConfig) -> Int {
+        return config.channelOverride ?? self.channel
+    }
+
+    public func effectiveDestinationUID(for config: DrumPadConfig) -> Int32? {
+        guard let override = config.destinationOverrideUID else {
+            return selectedDestinationUID
+        }
+        if override == "virtual" {
+            return nil
+        }
+        if let uid = Int32(override) {
+            return uid
+        }
+        return selectedDestinationUID
+    }
 
     public func isDrumPadActive(bank: Int, padIndex: Int) -> Bool {
         let key = "\(bank)_\(padIndex)"
@@ -241,12 +274,16 @@ public final class AppState {
         if let pads = layout.drumPads {
             activeDrumPadCCToggles.removeAll()
             activeDrumPadKeys.removeAll()
+            activeDrumPadNotes.removeAll()
+            activeDrumPadCC.removeAll()
             activeProfile.drumPads = pads
             saveDrumPads()
         }
         if let keys = layout.computerKeyboardKeys {
             activeComputerCCToggles.removeAll()
             activeComputerKeys.removeAll()
+            activeComputerKeyNotes.removeAll()
+            activeComputerKeyCC.removeAll()
             activeProfile.computerKeyboardKeys = keys
             saveComputerKeys()
         }
@@ -265,11 +302,15 @@ public final class AppState {
     public func clearAllLayout() {
         activeDrumPadCCToggles.removeAll()
         activeDrumPadKeys.removeAll()
+        activeDrumPadNotes.removeAll()
+        activeDrumPadCC.removeAll()
         activeProfile.drumPads.removeAll()
         saveDrumPads()
 
         activeComputerCCToggles.removeAll()
         activeComputerKeys.removeAll()
+        activeComputerKeyNotes.removeAll()
+        activeComputerKeyCC.removeAll()
         activeProfile.computerKeyboardKeys.removeAll()
         saveComputerKeys()
 
@@ -336,9 +377,12 @@ public final class AppState {
             return
         }
 
+        let effChannel = effectiveChannel(for: config)
+        let effDestUID = effectiveDestinationUID(for: config)
+
         // Handle MIDI Command (Transport / Panic)
         if let cmd = config.midiCommand {
-            MIDIManager.shared.sendCommand(cmd, channel: channel, destinationUID: selectedDestinationUID)
+            MIDIManager.shared.sendCommand(cmd, channel: effChannel, destinationUID: effDestUID)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                 self?.activeComputerKeys.remove(keyCode)
             }
@@ -347,22 +391,22 @@ public final class AppState {
 
         // Handle MIDI CC Button / Trigger
         if let cc = config.ccConfig {
-            activeComputerKeyCC[keyCode] = cc
+            activeComputerKeyCC[keyCode] = ActiveCCTrigger(cc: cc, channel: effChannel, destinationUID: effDestUID)
             switch cc.mode {
             case .trigger:
-                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: effChannel, destinationUID: effDestUID)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                     self?.activeComputerKeys.remove(keyCode)
                 }
             case .momentary:
-                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: effChannel, destinationUID: effDestUID)
             case .toggle:
                 if activeComputerCCToggles.contains(keyCode) {
                     activeComputerCCToggles.remove(keyCode)
-                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: effChannel, destinationUID: effDestUID)
                 } else {
                     activeComputerCCToggles.insert(keyCode)
-                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: effChannel, destinationUID: effDestUID)
                 }
             }
             return
@@ -372,11 +416,11 @@ public final class AppState {
         let notes = config.notesToSend
         guard !notes.isEmpty else { return }
 
-        activeComputerKeyNotes[keyCode] = notes
+        activeComputerKeyNotes[keyCode] = ActiveKeyNoteTrigger(notes: notes, channel: effChannel, destinationUID: effDestUID)
         let vel = velocityOverride ?? UInt8(velocity)
 
         for n in notes {
-            MIDIPipeline.shared.sendNoteOn(note: n, velocity: vel, channel: channel, destinationUID: selectedDestinationUID)
+            MIDIPipeline.shared.sendNoteOn(note: n, velocity: vel, channel: effChannel, destinationUID: effDestUID)
             activeNotes.insert(n)
         }
         if let root = config.midiNote {
@@ -394,16 +438,16 @@ public final class AppState {
     public func triggerComputerKeyOff(keyCode: UInt16, layer: ComputerKeyboardLayer? = nil) {
         activeComputerKeys.remove(keyCode)
 
-        // If momentary CC was active for this keyCode, release it
-        if let cc = activeComputerKeyCC.removeValue(forKey: keyCode), cc.mode == .momentary {
-            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+        // If momentary CC was active for this keyCode, release it using stored channel & destination
+        if let trigger = activeComputerKeyCC.removeValue(forKey: keyCode), trigger.cc.mode == .momentary {
+            MIDIPipeline.shared.sendCC(controller: trigger.cc.controller, value: trigger.cc.offValue, channel: trigger.channel, destinationUID: trigger.destinationUID)
             return
         }
 
-        // If notes were active for this keyCode, release them
-        if let notes = activeComputerKeyNotes.removeValue(forKey: keyCode) {
-            for n in notes {
-                MIDIPipeline.shared.sendNoteOff(note: n, channel: channel, destinationUID: selectedDestinationUID)
+        // If notes were active for this keyCode, release them using stored channel & destination
+        if let trigger = activeComputerKeyNotes.removeValue(forKey: keyCode) {
+            for n in trigger.notes {
+                MIDIPipeline.shared.sendNoteOff(note: n, channel: trigger.channel, destinationUID: trigger.destinationUID)
                 activeNotes.remove(n)
             }
             return
@@ -414,15 +458,17 @@ public final class AppState {
         guard let config = computerKeyConfig(keyCode: keyCode, layer: targetLayer), config.isAssigned else {
             return
         }
+        let effChannel = effectiveChannel(for: config)
+        let effDestUID = effectiveDestinationUID(for: config)
 
         if let cc = config.ccConfig, cc.mode == .momentary {
-            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+            MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: effChannel, destinationUID: effDestUID)
             return
         }
 
         let notes = config.notesToSend
         for n in notes {
-            MIDIPipeline.shared.sendNoteOff(note: n, channel: channel, destinationUID: selectedDestinationUID)
+            MIDIPipeline.shared.sendNoteOff(note: n, channel: effChannel, destinationUID: effDestUID)
             activeNotes.remove(n)
         }
         if let root = config.midiNote {
@@ -433,11 +479,13 @@ public final class AppState {
     public func triggerDrumPadOn(bank: Int, padIndex: Int, velocityOverride: UInt8? = nil) {
         guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else { return }
         let padKey = "\(bank)_\(padIndex)"
+        let effChannel = effectiveChannel(for: config)
+        let effDestUID = effectiveDestinationUID(for: config)
 
         // Handle MIDI Command (Transport / Panic)
         if let cmd = config.midiCommand {
             activeDrumPadKeys.insert(padKey)
-            MIDIManager.shared.sendCommand(cmd, channel: channel, destinationUID: selectedDestinationUID)
+            MIDIManager.shared.sendCommand(cmd, channel: effChannel, destinationUID: effDestUID)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                 self?.activeDrumPadKeys.remove(padKey)
             }
@@ -446,24 +494,25 @@ public final class AppState {
 
         // Handle MIDI CC Button / Trigger
         if let cc = config.ccConfig {
+            activeDrumPadCC[padKey] = ActiveCCTrigger(cc: cc, channel: effChannel, destinationUID: effDestUID)
             switch cc.mode {
             case .trigger:
                 activeDrumPadKeys.insert(padKey)
-                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: effChannel, destinationUID: effDestUID)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                     self?.activeDrumPadKeys.remove(padKey)
                 }
             case .momentary:
                 activeDrumPadKeys.insert(padKey)
-                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: effChannel, destinationUID: effDestUID)
             case .toggle:
                 let currentlyOn = activeDrumPadCCToggles.contains(padKey)
                 if currentlyOn {
                     activeDrumPadCCToggles.remove(padKey)
-                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: effChannel, destinationUID: effDestUID)
                 } else {
                     activeDrumPadCCToggles.insert(padKey)
-                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: channel, destinationUID: selectedDestinationUID)
+                    MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.value, channel: effChannel, destinationUID: effDestUID)
                 }
             }
             return
@@ -474,13 +523,14 @@ public final class AppState {
         let vel = velocityOverride ?? UInt8(velocity)
 
         activeDrumPadKeys.insert(padKey)
+        activeDrumPadNotes[padKey] = ActiveKeyNoteTrigger(notes: notes, channel: effChannel, destinationUID: effDestUID)
 
         for note in notes {
             MIDIPipeline.shared.sendNoteOn(
                 note: note,
                 velocity: vel,
-                channel: channel,
-                destinationUID: selectedDestinationUID
+                channel: effChannel,
+                destinationUID: effDestUID
             )
         }
 
@@ -493,33 +543,49 @@ public final class AppState {
 
     public func triggerDrumPadOff(bank: Int, padIndex: Int) {
         let padKey = "\(bank)_\(padIndex)"
-        guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else {
-            activeDrumPadKeys.remove(padKey)
+        activeDrumPadKeys.remove(padKey)
+
+        if let trigger = activeDrumPadCC.removeValue(forKey: padKey), trigger.cc.mode == .momentary {
+            MIDIPipeline.shared.sendCC(controller: trigger.cc.controller, value: trigger.cc.offValue, channel: trigger.channel, destinationUID: trigger.destinationUID)
             return
         }
 
+        if let trigger = activeDrumPadNotes.removeValue(forKey: padKey) {
+            for note in trigger.notes {
+                MIDIPipeline.shared.sendNoteOff(
+                    note: note,
+                    velocity: 0,
+                    channel: trigger.channel,
+                    destinationUID: trigger.destinationUID
+                )
+            }
+            return
+        }
+
+        guard let config = drumPadConfig(bank: bank, padIndex: padIndex), config.isAssigned else {
+            return
+        }
+        let effChannel = effectiveChannel(for: config)
+        let effDestUID = effectiveDestinationUID(for: config)
+
         if config.midiCommand != nil {
-            activeDrumPadKeys.remove(padKey)
             return
         }
 
         if let cc = config.ccConfig {
             if cc.mode == .momentary {
-                activeDrumPadKeys.remove(padKey)
-                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: channel, destinationUID: selectedDestinationUID)
+                MIDIPipeline.shared.sendCC(controller: cc.controller, value: cc.offValue, channel: effChannel, destinationUID: effDestUID)
             }
             return
         }
 
         let notes = config.notesToSend
-        activeDrumPadKeys.remove(padKey)
-
         for note in notes {
             MIDIPipeline.shared.sendNoteOff(
                 note: note,
                 velocity: 0,
-                channel: channel,
-                destinationUID: selectedDestinationUID
+                channel: effChannel,
+                destinationUID: effDestUID
             )
         }
     }
