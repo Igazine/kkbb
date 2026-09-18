@@ -12,10 +12,11 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 * **Instant CoreMIDI Virtual Source**: Publishes **"KKBB Virtual Output"** automatically. DAWs (Ableton Live, Logic Pro, Reaper, Bitwig Studio, FL Studio, GarageBand, etc.) detect it immediately without configuring IAC drivers.
 * **Hardware MIDI Routing**: Direct output selection for external hardware synths, USB-MIDI interfaces, and software endpoints.
 * **Polyphonic with OS Repeat Suppression**: Play chords fluidly while suppressing macOS key auto-repeat to avoid duplicate Note-On triggers.
-* **Three Performance Modes**:
+* **Four Performance Modes**:
   * **1-Octave Piano Mode**: Fast, compact single-octave layout (C to C).
   * **2-Octave Piano Mode**: Two full octaves plus top C with natural dual-row physical key ergonomics.
   * **4x4 Pad Grid Mode**: MPC-style performance pad layout with 7 independent banks (112 total pads) and cross-bank triggering.
+  * **Computer Keyboard Mode**: Interactive visual computer keyboard (**MacBook 75%** & **Full 101-Key** layouts) with fully assignable notes, chords, commands, and CC triggers.
 * **Expressive Chord Engine**:
   * **12-Pad Chord Strip**: Instant access to 14 standard chords and 20 Bitwig scales & modes with configurable hot-keys (F1–F12).
   * **Visual Root Distinction**: Pressed root notes glow in vivid accent blue with a centered white dot marker; harmonic chord extensions glow softly at dimmed opacity.
@@ -73,6 +74,18 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
     * **Presets**: Sustain Momentary, Sustain Toggle, Mod Wheel Max, Expression Max, Volume Max, Volume Mute, All Sound Off, Panic CC.
     * **Custom CC Sheet**: User-defined Controller # (0–127), Target/On Value (0–127), Off Value (0–127), and Mode (**Momentary**, **Toggle** with persistent visual lock, or **Trigger**).
 * **Layout Save & Load**: Save and load complete 112-pad rigs across Banks 0–6 to/from local `.kkbbgrid` or `.json` files via the **File** menu. Auto-switches to Grid mode on load and shows the file name in the window subtitle.
+
+### 3. Computer Keyboard Mode
+* **1:1 Visual Computer Keyboard**: An on-screen rendering of your Mac's computer keyboard where individual keys can be custom assigned to notes, chords, transport commands, and CC controls.
+* **Dual Layout Selection**:
+  * **MacBook (75%)**: Standard ANSI compact laptop layout with arrow keys and function row.
+  * **Full 101-Key**: Extended layout featuring dedicated Navigation cluster (Insert, Delete, Home, End, Page Up, Page Down) and full Numpad.
+* **Proportionally Scaled Design**: Geometry automatically scales smoothly to fit the compact window footprint without requiring huge screen real estate or horizontal scrollbars.
+* **Passive vs. Configurable Keys**:
+  * **Dimmed Modifiers**: System keys (`Cmd`, `Ctrl`, `Opt`, `Fn`, `Caps Lock`) are rendered with soft, passive opacity (~18–40%) to clearly distinguish non-configurable modifiers.
+  * **Prominent Performance Keys**: Active keys feature distinct styling and assignment badges showing Root Note, Chord name, MIDI Command, or CC controller.
+* **Right-Click Assignment**: Right-click any configurable key to assign Root Note & Octave, Voicing (14 chords, 20 Bitwig scales), MIDI Real-Time/MMC commands, or MIDI CC triggers.
+* **Real-Time Visual Feedback**: Active keys illuminate in accent blue on physical key presses, mouse clicks, or when locked in CC Toggle mode.
 
 ---
 

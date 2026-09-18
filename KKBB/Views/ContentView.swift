@@ -7,6 +7,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             TopBarView(appState: appState, showSettings: $showSettings)
+                .frame(height: 46)
 
             darkHDivider
 
@@ -17,7 +18,9 @@ struct ContentView: View {
                 darkVDivider
 
                 VStack(spacing: 0) {
-                    OctaveBarView(appState: appState)
+                    if appState.mode != .computerKeyboard {
+                        OctaveBarView(appState: appState)
+                    }
 
                     KnobsStripView(appState: appState)
 
@@ -27,6 +30,9 @@ struct ContentView: View {
                         DrumPadGridView(appState: appState)
                             .frame(minHeight: 180, maxHeight: .infinity)
                             .clipped()
+                    } else if appState.mode == .computerKeyboard {
+                        ComputerKeyboardView(appState: appState)
+                            .frame(minHeight: 180, maxHeight: .infinity)
                     } else {
                         PianoRollView(appState: appState)
                             .frame(minHeight: 120, maxHeight: .infinity)
@@ -45,7 +51,7 @@ struct ContentView: View {
                 }
             )
         }
-        .frame(minWidth: 720, minHeight: appState.mode == .drumGrid ? 390 : 330)
+        .frame(minWidth: 720, minHeight: (appState.mode == .drumGrid || appState.mode == .computerKeyboard) ? 390 : 330)
         .sheet(isPresented: $showSettings) {
             SettingsView(appState: appState)
         }

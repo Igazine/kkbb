@@ -112,6 +112,15 @@ public final class KeyboardMonitor {
         }
 
         if event.type == .keyDown {
+            // In Computer Keyboard mode: route all physical keys directly to computer keyboard engine
+            if appState.mode == .computerKeyboard {
+                if event.isARepeat { return true }
+                DispatchQueue.main.async {
+                    appState.triggerComputerKeyOn(keyCode: event.keyCode)
+                }
+                return true
+            }
+
             // Check for Arrow keys (Octave: Up/Down, Velocity: Left/Right)
             switch event.keyCode {
             case 126: // Up Arrow -> Octave +1
@@ -305,6 +314,13 @@ public final class KeyboardMonitor {
             return true
 
         } else if event.type == .keyUp {
+            if appState.mode == .computerKeyboard {
+                DispatchQueue.main.async {
+                    appState.triggerComputerKeyOff(keyCode: event.keyCode)
+                }
+                return true
+            }
+
             if appState.mode == .drumGrid {
                 var handledDrumPad = false
                 for (_, cfg) in appState.activeProfile.drumPads {
@@ -391,6 +407,8 @@ public final class KeyboardMonitor {
             appState.activeNotes.removeAll()
             appState.pressedRootNotes.removeAll()
             appState.activeDrumPadKeys.removeAll()
+            appState.activeComputerKeys.removeAll()
+            appState.activeComputerCCToggles.removeAll()
         }
     }
 
@@ -414,7 +432,7 @@ public final class KeyboardMonitor {
                 let finalNote = Int(baseNote) + semitone
                 return (0...127).contains(finalNote) ? UInt8(finalNote) : nil
             }
-        case .drumGrid:
+        case .drumGrid, .computerKeyboard:
             return nil
         }
         return nil

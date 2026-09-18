@@ -35,6 +35,8 @@
 		10000026 /* DrumPadCCConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000026 /* DrumPadCCConfig.swift */; };
 		10000027 /* PadGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000027 /* PadGridLayout.swift */; };
 		10000028 /* PadGridDocumentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000028 /* PadGridDocumentManager.swift */; };
+		10000029 /* ComputerKeyboardType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000029 /* ComputerKeyboardType.swift */; };
+		10000030 /* ComputerKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000030 /* ComputerKeyboardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +69,8 @@
 		20000026 /* DrumPadCCConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumPadCCConfig.swift; sourceTree = "<group>"; };
 		20000027 /* PadGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadGridLayout.swift; sourceTree = "<group>"; };
 		20000028 /* PadGridDocumentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadGridDocumentManager.swift; sourceTree = "<group>"; };
+		20000029 /* ComputerKeyboardType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardType.swift; sourceTree = "<group>"; };
+		20000030 /* ComputerKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerKeyboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +119,7 @@
 				20000025 /* MIDICommandType.swift */,
 				20000026 /* DrumPadCCConfig.swift */,
 				20000027 /* PadGridLayout.swift */,
+				20000029 /* ComputerKeyboardType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -152,6 +157,7 @@
 				20000020 /* KnobsStripView.swift */,
 				20000022 /* ChordPadsStripView.swift */,
 				20000024 /* DrumPadGridView.swift */,
+				20000030 /* ComputerKeyboardView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -266,6 +272,8 @@
 				10000026 /* DrumPadCCConfig.swift in Sources */,
 				10000027 /* PadGridLayout.swift in Sources */,
 				10000028 /* PadGridDocumentManager.swift in Sources */,
+				10000029 /* ComputerKeyboardType.swift in Sources */,
+				10000030 /* ComputerKeyboardView.swift in Sources */,
 				10000009 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
