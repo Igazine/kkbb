@@ -33,12 +33,32 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 
 ## Screenshots
 
+#### 1-Octave Piano Roll
+
 ![1-Octave Screen](screenshots/Screenshot%202026-09-18%20at%2015.32.34.png)
+
+#### 2-Octave Piano Roll
+
 ![2-Octave Screen](screenshots/Screenshot%202026-09-18%20at%2015.33.03.png)
+
+#### 4x4 Pad Grid
+
 ![4x4 Grid/Pad Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.09.png)
+
+#### MacBook Keyboard Layout
+
 ![75-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.27.png)
+
+#### 101-key Keyboard Layout
+
 ![101-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.56.png)
+
+#### Compact View Mode
+
 ![Compact Mode](screenshots/Screenshot%202026-09-18%20at%2015.35.36.png)
+
+#### Micro HUD
+
 <img src="screenshots/Screenshot%202026-09-18%20at%2015.35.52.png" width="307" height="339" alt="Micro HUD" />
 
 ---
