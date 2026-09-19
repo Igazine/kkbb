@@ -40,6 +40,7 @@ A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller th
 ![101-key Computer Keyboard Mode](screenshots/Screenshot%202026-09-18%20at%2015.34.56.png)
 ![Compact Mode](screenshots/Screenshot%202026-09-18%20at%2015.35.36.png)
 ![Micro HUD](screenshots/Screenshot%202026-09-18%20at%2015.35.52.png)
+<img src="screenshots/Screenshot%202026-09-18%20at%2015.35.52.png" width="614" height="678" />
 
 ---
 
