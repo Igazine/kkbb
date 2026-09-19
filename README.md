@@ -2,7 +2,7 @@
 
 A powerful, native macOS Virtual MIDI Keyboard and Performance Pad Controller that turns your Mac's computer keyboard into an expressive, ultra-low-latency MIDI instrument.
 
-> **Note**: KKBB is currently a **"build for yourself"** project. Precompiled application binaries are not distributed at this time. Follow the simple [Building and Running](#building-and-running) instructions below to build and launch it locally on your Mac.
+> **Download & Install**: Ready-to-use precompiled application binaries for Apple Silicon Macs are available on [GitHub Releases](https://github.com/Igazine/kkbb/releases). Alternatively, you can build from source following the [instructions below](#building-from-source).
 
 ---
 
