@@ -1,0 +1,118 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: macos-14 # Apple Silicon (arm64) runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate branch is main
+        run: |
+          echo "Validating that release commit belongs to 'main' branch..."
+          git fetch origin main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::Release builds are strictly restricted to commits merged into the 'main' branch."
+            exit 1
+          fi
+          echo "Commit verified on 'main'."
+
+      - name: Extract version
+        id: version_step
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_VER="${{ github.event.inputs.version }}"
+          else
+            TAG_VER="${GITHUB_REF#refs/tags/}"
+          fi
+          # Ensure tag starts with 'v'
+          if [[ ! "$TAG_VER" =~ ^v ]]; then
+            TAG_VER="v${TAG_VER}"
+          fi
+          MARKETING_VER="${TAG_VER#v}"
+          echo "TAG_VERSION=${TAG_VER}" >> $GITHUB_OUTPUT
+          echo "MARKETING_VERSION=${MARKETING_VER}" >> $GITHUB_OUTPUT
+          echo "Building Release version: ${TAG_VER} (Marketing Version: ${MARKETING_VER})"
+
+      - name: Build Release App
+        run: |
+          xcodebuild clean build \
+            -project KKBB.xcodeproj \
+            -scheme KKBB \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath ./DerivedData \
+            MARKETING_VERSION="${{ steps.version_step.outputs.MARKETING_VERSION }}" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES
+
+      - name: Package Application (.zip)
+        run: |
+          TAG="${{ steps.version_step.outputs.TAG_VERSION }}"
+          APP_PATH="./DerivedData/Build/Products/Release/KKBB.app"
+          ZIP_NAME="KKBB-${TAG}-macOS-arm64.zip"
+
+          echo "Archiving ${APP_PATH} using ditto to preserve bundle code signature and metadata..."
+          ditto -c -k --keepParent "${APP_PATH}" "${ZIP_NAME}"
+
+          # Compute SHA-256 checksum
+          shasum -a 256 "${ZIP_NAME}" > "${ZIP_NAME}.sha256"
+
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+          echo "SHA_NAME=${ZIP_NAME}.sha256" >> $GITHUB_ENV
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version_step.outputs.TAG_VERSION }}
+          name: KKBB ${{ steps.version_step.outputs.TAG_VERSION }}
+          files: |
+            ${{ env.ZIP_NAME }}
+            ${{ env.SHA_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ### KKBB — Native Virtual MIDI Keyboard for macOS (Apple Silicon)
+
+            #### Release Artifacts:
+            * **`${{ env.ZIP_NAME }}`**: macOS application bundle for Apple Silicon (M1/M2/M3/M4).
+            * **`${{ env.SHA_NAME }}`**: SHA-256 checksum for download verification.
+
+            ---
+
+            ### 🚀 Installation & First Launch (Gatekeeper)
+
+            Because KKBB is an independent open-source project and is **ad-hoc code signed without Apple Developer ID notarization**, macOS Gatekeeper will show a verification warning on first launch. You can allow it easily using either method below:
+
+            #### Option A: Finder (GUI)
+            1. Download and unzip **`${{ env.ZIP_NAME }}`**.
+            2. Move **`KKBB.app`** to your **`/Applications`** folder.
+            3. **Right-click** (or Control-click) `KKBB.app` and choose **Open**.
+            4. When the security prompt appears (*"Apple could not verify the developer..."*), click **Open**.
+               *(On macOS Sequoia 15+: If the direct prompt does not appear, open **System Settings > Privacy & Security**, scroll down to Security, and click **Open Anyway**).*
+
+            #### Option B: Terminal (One-Liner)
+            To instantly remove the macOS download quarantine flag and allow regular double-clicking:
+            ```bash
+            xattr -cr /Applications/KKBB.app
+            ```

@@ -239,7 +239,22 @@ Positioned directly below the piano roll, these 12 pads provide instant chord ha
 
 ---
 
-## Building and Running
+## Installation & Releases
+
+### Download Pre-built App
+Download the latest `KKBB-vX.X.X-macOS-arm64.zip` from [GitHub Releases](https://github.com/Igazine/kkbb/releases).
+
+1. Unzip the downloaded file and move `KKBB.app` to your `/Applications` folder.
+2. Because KKBB is open-source and **ad-hoc code signed** (no paid Apple Developer ID certificate), macOS Gatekeeper requires a one-time approval:
+   * **Option A (GUI)**: Right-click (or Control-click) `KKBB.app` $\rightarrow$ choose **Open** $\rightarrow$ click **Open** (or on macOS Sequoia 15+: go to **System Settings > Privacy & Security** and click **Open Anyway**).
+   * **Option B (Terminal)**: Run this one-liner to strip the quarantine flag:
+     ```bash
+     xattr -cr /Applications/KKBB.app
+     ```
+
+---
+
+## Building from Source
 
 KKBB is built for Apple Silicon Macs running **macOS 14.0 (Sonoma)** or later.
 
