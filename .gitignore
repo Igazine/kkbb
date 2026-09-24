@@ -26,6 +26,7 @@ Package.resolved
 # Editor / IDE
 .vscode/
 .idea/
+*.code-workspace
 *.swp
 *~
 
